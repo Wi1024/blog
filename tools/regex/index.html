@@ -1,0 +1,1297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/blog/',
+    scheme: 'Pisces',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":true},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":true,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="📦 本文已归档到：「blog」   简介 为了理解下面章节的内容，你需要先了解一些基本概念。  正则表达式 - 正则表达式是对字符串操作的一种逻辑公式，就是用事先定义好的一些特定字符、及这些特定字符的组合，组成一个“规则字符串”，这个“规则字符串”用来表达对字符串的一种过滤逻辑。 元字符 - 元字符(metacharacters)就是正则表达式中具有特殊意义的专用字符。 普通字符 - 普通字符">
+<meta property="og:type" content="article">
+<meta property="og:title" content="正则表达式">
+<meta property="og:url" content="https://dunwu.github.io/blog/tools/regex/index.html">
+<meta property="og:site_name" content="Dunwu">
+<meta property="og:description" content="📦 本文已归档到：「blog」   简介 为了理解下面章节的内容，你需要先了解一些基本概念。  正则表达式 - 正则表达式是对字符串操作的一种逻辑公式，就是用事先定义好的一些特定字符、及这些特定字符的组合，组成一个“规则字符串”，这个“规则字符串”用来表达对字符串的一种过滤逻辑。 元字符 - 元字符(metacharacters)就是正则表达式中具有特殊意义的专用字符。 普通字符 - 普通字符">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2016-10-10T03:45:00.000Z">
+<meta property="article:modified_time" content="2020-12-27T16:02:48.593Z">
+<meta property="article:author" content="Zhang Peng">
+<meta property="article:tag" content="工具">
+<meta property="article:tag" content="正则">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://dunwu.github.io/blog/tools/regex/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>正则表达式 | Dunwu</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/blog/atom.xml" title="Dunwu" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/blog/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Dunwu</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">大道至简，知易行难</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">43</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">47</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/dunwu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://dunwu.github.io/blog/blog/tools/regex/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="Zhang Peng">
+      <meta itemprop="description" content="Dunwu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Dunwu">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          正则表达式<a href="https://github.com/dunwu/blog/blob/master/source/_posts/tools/regex.md" class="post-edit-link" title="编辑" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2016-10-10 11:45:00" itemprop="dateCreated datePublished" datetime="2016-10-10T11:45:00+08:00">2016-10-10</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-28 00:02:48" itemprop="dateModified" datetime="2020-12-28T00:02:48+08:00">2020-12-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/%E5%B7%A5%E5%85%B7/" itemprop="url" rel="index">
+                    <span itemprop="name">工具</span>
+                  </a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/tools/regex/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="tools/regex/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>21k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>19 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>📦 本文已归档到：「<a href="https://github.com/dunwu/blog" target="_blank" rel="noopener">blog</a>」</p>
+</blockquote>
+<h2 id="简介"><a class="markdownIt-Anchor" href="#简介"></a> 简介</h2>
+<p>为了理解下面章节的内容，你需要先了解一些基本概念。</p>
+<ul>
+<li><strong>正则表达式</strong> - 正则表达式是对字符串操作的一种逻辑公式，就是用事先定义好的一些特定字符、及这些特定字符的组合，组成一个“规则字符串”，这个“规则字符串”用来表达对字符串的一种过滤逻辑。</li>
+<li><strong>元字符</strong> - 元字符(metacharacters)就是正则表达式中具有特殊意义的专用字符。</li>
+<li><strong>普通字符</strong> - 普通字符包括没有显式指定为元字符的所有可打印和不可打印字符。这包括所有大写和小写字母、所有数字、所有标点符号和一些其他符号。</li>
+</ul>
+<h2 id="基本元字符"><a class="markdownIt-Anchor" href="#基本元字符"></a> 基本元字符</h2>
+<p>正则表达式的元字符难以记忆，很大程度上是因为有很多为了简化表达而出现的等价字符。</p>
+<p>而实际上最基本的元字符，并没有那么多。对于大部分的场景，基本元字符都可以搞定。</p>
+<p>让我们从一个个实例出发，由浅入深的去体会正则的奥妙。</p>
+<h3 id="多选-"><a class="markdownIt-Anchor" href="#多选-"></a> 多选 - |</h3>
+<p><strong>例 匹配一个确定的字符串</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">checkMatches(<span class="string">"abc"</span>, <span class="string">"abc"</span>);</span><br></pre></td></tr></table></figure>
+<p>如果要匹配一个确定的字符串，非常简单，如例 1 所示。</p>
+<p>如果你不确定要匹配的字符串，希望有多个选择，怎么办？</p>
+<p>答案是：使用元字符<code>|</code> ，它的含义是或。</p>
+<p><strong>例 匹配多个可选的字符串</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试正则表达式字符：|</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"yes|no"</span>, <span class="string">"yes"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"yes|no"</span>, <span class="string">"no"</span>));</span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"yes|no"</span>, <span class="string">"right"</span>));</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="literal">yes</span>	<span class="string">matches：</span> <span class="literal">yes</span><span class="string">|no</span></span><br><span class="line"><span class="literal">no</span>	<span class="string">matches：</span> <span class="literal">yes</span><span class="string">|no</span></span><br><span class="line"><span class="string">right</span>	<span class="string">not</span> <span class="string">matches：</span> <span class="literal">yes</span><span class="string">|no</span></span><br></pre></td></tr></table></figure>
+<h3 id="分组-"><a class="markdownIt-Anchor" href="#分组-"></a> 分组 - ()</h3>
+<p>如果你希望表达式由多个子表达式组成，你可以使用 <code>()</code>。</p>
+<p><strong>例 匹配组合字符串</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Assert.assertTrue(checkMatches(<span class="string">"(play|end)(ing|ed)"</span>, <span class="string">"ended"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"(play|end)(ing|ed)"</span>, <span class="string">"ending"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"(play|end)(ing|ed)"</span>, <span class="string">"playing"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"(play|end)(ing|ed)"</span>, <span class="string">"played"</span>));</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight coq"><table><tr><td class="code"><pre><span class="line">ended	matches： (play|<span class="type">end</span>)(ing|<span class="type">ed</span>)</span><br><span class="line">ending	matches： (play|<span class="type">end</span>)(ing|<span class="type">ed</span>)</span><br><span class="line">playing	matches： (play|<span class="type">end</span>)(ing|<span class="type">ed</span>)</span><br><span class="line">played	matches： (play|<span class="type">end</span>)(ing|<span class="type">ed</span>)</span><br></pre></td></tr></table></figure>
+<h3 id="指定单字符有效范围-"><a class="markdownIt-Anchor" href="#指定单字符有效范围-"></a> 指定单字符有效范围 - []</h3>
+<p>前面展示了如何匹配字符串，但是很多时候你需要精确的匹配一个字符，这时可以使用<code>[]</code> 。</p>
+<p><strong>例 字符在指定范围</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试正则表达式字符：[]</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[abc]"</span>, <span class="string">"b"</span>));  <span class="comment">// 字符只能是a、b、c</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[a-z]"</span>, <span class="string">"m"</span>)); <span class="comment">// 字符只能是a - z</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[A-Z]"</span>, <span class="string">"O"</span>)); <span class="comment">// 字符只能是A - Z</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[a-zA-Z]"</span>, <span class="string">"K"</span>)); <span class="comment">// 字符只能是a - z和A - Z</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[a-zA-Z]"</span>, <span class="string">"k"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[0-9]"</span>, <span class="string">"5"</span>)); <span class="comment">// 字符只能是0 - 9</span></span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight apache"><table><tr><td class="code"><pre><span class="line"><span class="attribute">b</span>	matches：<span class="meta"> [abc]</span></span><br><span class="line"><span class="attribute">m</span>	matches：<span class="meta"> [a-z]</span></span><br><span class="line"><span class="attribute">O</span>	matches：<span class="meta"> [A-Z]</span></span><br><span class="line"><span class="attribute">K</span>	matches：<span class="meta"> [a-zA-Z]</span></span><br><span class="line"><span class="attribute">k</span>	matches：<span class="meta"> [a-zA-Z]</span></span><br><span class="line"><span class="attribute">5</span>	matches：<span class="meta"> [0-9]</span></span><br></pre></td></tr></table></figure>
+<h3 id="指定单字符无效范围-"><a class="markdownIt-Anchor" href="#指定单字符无效范围-"></a> 指定单字符无效范围 - [^]</h3>
+<p><strong>例 字符不能在指定范围</strong></p>
+<p>如果需要匹配一个字符的逆操作，即字符不能在指定范围，可以使用<code>[^]</code>。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 测试正则表达式字符：[^]</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^abc]"</span>, <span class="string">"b"</span>)); <span class="comment">// 字符不能是a、b、c</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^a-z]"</span>, <span class="string">"m"</span>)); <span class="comment">// 字符不能是a - z</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^A-Z]"</span>, <span class="string">"O"</span>)); <span class="comment">// 字符不能是A - Z</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^a-zA-Z]"</span>, <span class="string">"K"</span>)); <span class="comment">// 字符不能是a - z和A - Z</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^a-zA-Z]"</span>, <span class="string">"k"</span>));</span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^0-9]"</span>, <span class="string">"5"</span>)); <span class="comment">// 字符不能是0 - 9</span></span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">b<span class="built_in">	not</span><span class="built_in"> matches</span>： [^abc]</span><br><span class="line">m<span class="built_in">	not</span><span class="built_in"> matches</span>： [^a-z]</span><br><span class="line">O<span class="built_in">	not</span><span class="built_in"> matches</span>： [^A-Z]</span><br><span class="line">K<span class="built_in">	not</span><span class="built_in"> matches</span>： [^a-zA-Z]</span><br><span class="line">k<span class="built_in">	not</span><span class="built_in"> matches</span>： [^a-zA-Z]</span><br><span class="line"><span class="number">5</span><span class="built_in">	not</span><span class="built_in"> matches</span>： [^<span class="number">0</span>-<span class="number">9</span>]</span><br></pre></td></tr></table></figure>
+<h3 id="限制字符数量-"><a class="markdownIt-Anchor" href="#限制字符数量-"></a> 限制字符数量 - {}</h3>
+<p>如果想要控制字符出现的次数，可以使用<code>{}</code>。</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>{n}</code></td>
+<td>n 是一个非负整数。匹配确定的 n 次。</td>
+</tr>
+<tr>
+<td><code>{n,}</code></td>
+<td>n 是一个非负整数。至少匹配 n 次。</td>
+</tr>
+<tr>
+<td><code>{n,m}</code></td>
+<td>m 和 n 均为非负整数，其中 n &lt;= m。最少匹配 n 次且最多匹配 m 次。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>例 限制字符出现次数</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// &#123;n&#125;: n 是一个非负整数。匹配确定的 n 次。</span></span><br><span class="line">checkMatches(<span class="string">"ap&#123;1&#125;"</span>, <span class="string">"a"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;1&#125;"</span>, <span class="string">"ap"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;1&#125;"</span>, <span class="string">"app"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;1&#125;"</span>, <span class="string">"apppppppppp"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// &#123;n,&#125;: n 是一个非负整数。至少匹配 n 次。</span></span><br><span class="line">checkMatches(<span class="string">"ap&#123;1,&#125;"</span>, <span class="string">"a"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;1,&#125;"</span>, <span class="string">"ap"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;1,&#125;"</span>, <span class="string">"app"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;1,&#125;"</span>, <span class="string">"apppppppppp"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// &#123;n,m&#125;: m 和 n 均为非负整数，其中 n &lt;= m。最少匹配 n 次且最多匹配 m 次。</span></span><br><span class="line">checkMatches(<span class="string">"ap&#123;2,5&#125;"</span>, <span class="string">"a"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;2,5&#125;"</span>, <span class="string">"ap"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;2,5&#125;"</span>, <span class="string">"app"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap&#123;2,5&#125;"</span>, <span class="string">"apppppppppp"</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">a<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">1</span>&#125;</span><br><span class="line">ap<span class="built_in">	matches</span>： ap&#123;<span class="number">1</span>&#125;</span><br><span class="line">app<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">1</span>&#125;</span><br><span class="line">apppppppppp<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">1</span>&#125;</span><br><span class="line">a<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">1</span>,&#125;</span><br><span class="line">ap<span class="built_in">	matches</span>： ap&#123;<span class="number">1</span>,&#125;</span><br><span class="line">app<span class="built_in">	matches</span>： ap&#123;<span class="number">1</span>,&#125;</span><br><span class="line">apppppppppp<span class="built_in">	matches</span>： ap&#123;<span class="number">1</span>,&#125;</span><br><span class="line">a<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">2</span>,<span class="number">5</span>&#125;</span><br><span class="line">ap<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">2</span>,<span class="number">5</span>&#125;</span><br><span class="line">app<span class="built_in">	matches</span>： ap&#123;<span class="number">2</span>,<span class="number">5</span>&#125;</span><br><span class="line">apppppppppp<span class="built_in">	not</span><span class="built_in"> matches</span>： ap&#123;<span class="number">2</span>,<span class="number">5</span>&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="转义字符-"><a class="markdownIt-Anchor" href="#转义字符-"></a> 转义字符 - /</h3>
+<p>如果想要查找元字符本身，你需要使用转义符，使得正则引擎将其视作一个普通字符，而不是一个元字符去处理。</p>
+<figure class="highlight livescript"><table><tr><td class="code"><pre><span class="line">* 的转义字符：<span class="string">\*</span></span><br><span class="line">+ 的转义字符：<span class="string">\+</span></span><br><span class="line">? 的转义字符：<span class="string">\?</span></span><br><span class="line">^ 的转义字符：<span class="string">\^</span></span><br><span class="line">$ 的转义字符：<span class="string">\$</span></span><br><span class="line">. 的转义字符：<span class="string">\.</span></span><br></pre></td></tr></table></figure>
+<p>如果是转义符<code>\</code>本身，你也需要使用<code>\\</code> 。</p>
+<h3 id="指定表达式字符串的开始和结尾-"><a class="markdownIt-Anchor" href="#指定表达式字符串的开始和结尾-"></a> 指定表达式字符串的开始和结尾 - ^、$</h3>
+<p>如果希望匹配的字符串必须以特定字符串开头，可以使用<code>^</code> 。</p>
+<p>注：请特别留意，这里的<code>^</code> 一定要和 <code>[^]</code> 中的 “^” 区分。</p>
+<p><strong>例 限制字符串头部</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Assert.assertTrue(checkMatches(<span class="string">"^app[a-z]&#123;0,&#125;"</span>, <span class="string">"apple"</span>)); <span class="comment">// 字符串必须以app开头</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"^app[a-z]&#123;0,&#125;"</span>, <span class="string">"aplause"</span>));</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">apple<span class="built_in">	matches</span>： ^app[a-z]&#123;<span class="number">0</span>,&#125;</span><br><span class="line">aplause<span class="built_in">	not</span><span class="built_in"> matches</span>： ^app[a-z]&#123;<span class="number">0</span>,&#125;</span><br></pre></td></tr></table></figure>
+<p>如果希望匹配的字符串必须以特定字符串开头，可以使用<code>$</code> 。</p>
+<p><strong>例 限制字符串尾部</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">Assert.assertTrue(checkMatches(<span class="string">"[a-z]&#123;0,&#125;ing$"</span>, <span class="string">"playing"</span>)); <span class="comment">// 字符串必须以ing结尾</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[a-z]&#123;0,&#125;ing$"</span>, <span class="string">"long"</span>));</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight xquery"><table><tr><td class="code"><pre><span class="line">playing<span class="built_in">	matches</span>： [a-z]&#123;<span class="number">0</span>,&#125;ing$</span><br><span class="line">long<span class="built_in">	not</span><span class="built_in"> matches</span>： [a-z]&#123;<span class="number">0</span>,&#125;ing$</span><br></pre></td></tr></table></figure>
+<h2 id="等价字符"><a class="markdownIt-Anchor" href="#等价字符"></a> 等价字符</h2>
+<p>等价字符，顾名思义，就是对于基本元字符表达的一种简化（等价字符的功能都可以通过基本元字符来实现）。</p>
+<p>在没有掌握基本元字符之前，可以先不用理会，因为很容易把人绕晕。</p>
+<p>等价字符的好处在于简化了基本元字符的写法。</p>
+<h3 id="表示某一类型字符的等价字符"><a class="markdownIt-Anchor" href="#表示某一类型字符的等价字符"></a> 表示某一类型字符的等价字符</h3>
+<p>下表中的等价字符都表示某一类型的字符。</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>.</code></strong></td>
+<td>匹配除“\n”之外的任何单个字符。</td>
+</tr>
+<tr>
+<td><strong><code>\d</code></strong></td>
+<td>匹配一个数字字符。等价于[0-9]。</td>
+</tr>
+<tr>
+<td><strong><code>\D</code></strong></td>
+<td>匹配一个非数字字符。等价于[^0-9]。</td>
+</tr>
+<tr>
+<td><strong><code>\w</code></strong></td>
+<td>匹配包括下划线的任何单词字符。类似但不等价于“[A-Za-z0-9_]”，这里的单词字符指的是 Unicode 字符集。</td>
+</tr>
+<tr>
+<td><strong><code>\W</code></strong></td>
+<td>匹配任何非单词字符。</td>
+</tr>
+<tr>
+<td><strong><code>\s</code></strong></td>
+<td>匹配任何不可见字符，包括空格、制表符、换页符等等。等价于[ \f\n\r\t\v]。</td>
+</tr>
+<tr>
+<td><strong><code>\S</code></strong></td>
+<td>匹配任何可见字符。等价于[ \f\n\r\t\v]。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>案例 基本等价字符的用法</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 匹配除“\n”之外的任何单个字符</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">".&#123;1,&#125;"</span>, <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">".&#123;1,&#125;"</span>, <span class="string">"~!@#$%^&amp;*()+`-=[]&#123;&#125;;:&lt;&gt;,./?|\\"</span>));</span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"."</span>, <span class="string">"\n"</span>));</span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"[^\n]"</span>, <span class="string">"\n"</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 匹配一个数字字符。等价于[0-9]</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"\\d&#123;1,&#125;"</span>, <span class="string">"0123456789"</span>));</span><br><span class="line"><span class="comment">// 匹配一个非数字字符。等价于[^0-9]</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"\\D&#123;1,&#125;"</span>, <span class="string">"0123456789"</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 匹配包括下划线的任何单词字符。类似但不等价于“[A-Za-z0-9_]”，这里的单词字符指的是Unicode字符集</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"\\w&#123;1,&#125;"</span>, <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"</span>));</span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"\\w&#123;1,&#125;"</span>, <span class="string">"~!@#$%^&amp;*()+`-=[]&#123;&#125;;:&lt;&gt;,./?|\\"</span>));</span><br><span class="line"><span class="comment">// 匹配任何非单词字符</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"\\W&#123;1,&#125;"</span>, <span class="string">"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_"</span>));</span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"\\W&#123;1,&#125;"</span>, <span class="string">"~!@#$%^&amp;*()+`-=[]&#123;&#125;;:&lt;&gt;,./?|\\"</span>));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 匹配任何不可见字符，包括空格、制表符、换页符等等。等价于[ \f\n\r\t\v]</span></span><br><span class="line">Assert.assertTrue(checkMatches(<span class="string">"\\s&#123;1,&#125;"</span>, <span class="string">" \f\r\n\t"</span>));</span><br><span class="line"><span class="comment">// 匹配任何可见字符。等价于[^ \f\n\r\t\v]</span></span><br><span class="line">Assert.assertFalse(checkMatches(<span class="string">"\\S&#123;1,&#125;"</span>, <span class="string">" \f\r\n\t"</span>));</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight tex"><table><tr><td class="code"><pre><span class="line">ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_	matches： .&#123;1,&#125;</span><br><span class="line">~!@#<span class="formula">$%^&amp;*()+`-=[]&#123;&#125;;:&lt;&gt;,./?|<span class="tag">\<span class="name">\</span></span>	matches： .&#123;1,&#125;</span></span><br><span class="line"><span class="formula"><span class="tag">\<span class="name">n</span></span>	not matches： .</span></span><br><span class="line"><span class="formula"><span class="tag">\<span class="name">n</span></span>	not matches： [^<span class="tag">\<span class="name">n</span></span>]</span></span><br><span class="line"><span class="formula">0123456789	matches： <span class="tag">\<span class="name">\</span></span>d&#123;1,&#125;</span></span><br><span class="line"><span class="formula">0123456789	not matches： <span class="tag">\<span class="name">\</span></span>D&#123;1,&#125;</span></span><br><span class="line"><span class="formula">ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_	matches： <span class="tag">\<span class="name">\</span></span>w&#123;1,&#125;</span></span><br><span class="line"><span class="formula">~!@#$</span><span class="comment">%^&amp;*()+`-=[]&#123;&#125;;:&lt;&gt;,./?|\\	not matches： \\w&#123;1,&#125;</span></span><br><span class="line">ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_	not matches： <span class="tag">\<span class="name">\</span></span>W&#123;1,&#125;</span><br><span class="line">~!@#<span class="formula">$%^&amp;*()+`-=[]&#123;&#125;;:&lt;&gt;,./?|<span class="tag">\<span class="name">\</span></span>	matches： <span class="tag">\<span class="name">\</span></span>W&#123;1,&#125;</span></span><br><span class="line"><span class="formula"> <span class="tag">\<span class="name">f</span></span><span class="tag">\<span class="name">r</span></span><span class="tag">\<span class="name">n</span></span><span class="tag">\<span class="name">t</span></span>	matches： <span class="tag">\<span class="name">\</span></span>s&#123;1,&#125;</span></span><br><span class="line"><span class="formula"> <span class="tag">\<span class="name">f</span></span><span class="tag">\<span class="name">r</span></span><span class="tag">\<span class="name">n</span></span><span class="tag">\<span class="name">t</span></span>	not matches： <span class="tag">\<span class="name">\</span></span>S&#123;1,&#125;</span></span><br></pre></td></tr></table></figure>
+<h3 id="限制字符数量的等价字符"><a class="markdownIt-Anchor" href="#限制字符数量的等价字符"></a> 限制字符数量的等价字符</h3>
+<p>在基本元字符章节中，已经介绍了限制字符数量的基本元字符 - <code>{}</code> 。</p>
+<p>此外，还有 <code>*</code>、<code>+</code>、<code>?</code> 这个三个为了简化写法而出现的等价字符，我们来认识一下。</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*</code></td>
+<td>匹配前面的子表达式零次或多次。等价于{0,}。</td>
+</tr>
+<tr>
+<td><code>+</code></td>
+<td>匹配前面的子表达式一次或多次。等价于{1,}。</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>匹配前面的子表达式零次或一次。等价于 {0,1}。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>案例 限制字符数量的等价字符</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// *: 匹配前面的子表达式零次或多次。* 等价于&#123;0,&#125;。</span></span><br><span class="line">checkMatches(<span class="string">"ap*"</span>, <span class="string">"a"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap*"</span>, <span class="string">"ap"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap*"</span>, <span class="string">"app"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap*"</span>, <span class="string">"apppppppppp"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// +: 匹配前面的子表达式一次或多次。+ 等价于 &#123;1,&#125;。</span></span><br><span class="line">checkMatches(<span class="string">"ap+"</span>, <span class="string">"a"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap+"</span>, <span class="string">"ap"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap+"</span>, <span class="string">"app"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap+"</span>, <span class="string">"apppppppppp"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// ?: 匹配前面的子表达式零次或一次。? 等价于 &#123;0,1&#125;。</span></span><br><span class="line">checkMatches(<span class="string">"ap?"</span>, <span class="string">"a"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap?"</span>, <span class="string">"ap"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap?"</span>, <span class="string">"app"</span>);</span><br><span class="line">checkMatches(<span class="string">"ap?"</span>, <span class="string">"apppppppppp"</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight stata"><table><tr><td class="code"><pre><span class="line">a	matches： <span class="keyword">ap</span>*</span><br><span class="line"><span class="keyword">ap</span>	matches： <span class="keyword">ap</span>*</span><br><span class="line"><span class="keyword">app</span>	matches： <span class="keyword">ap</span>*</span><br><span class="line">apppppppppp	matches： <span class="keyword">ap</span>*</span><br><span class="line">a	not matches： <span class="keyword">ap</span>+</span><br><span class="line"><span class="keyword">ap</span>	matches： <span class="keyword">ap</span>+</span><br><span class="line"><span class="keyword">app</span>	matches： <span class="keyword">ap</span>+</span><br><span class="line">apppppppppp	matches： <span class="keyword">ap</span>+</span><br><span class="line">a	matches： <span class="keyword">ap</span>?</span><br><span class="line"><span class="keyword">ap</span>	matches： <span class="keyword">ap</span>?</span><br><span class="line"><span class="keyword">app</span>	not matches： <span class="keyword">ap</span>?</span><br><span class="line">apppppppppp	not matches： <span class="keyword">ap</span>?</span><br></pre></td></tr></table></figure>
+<h2 id="元字符优先级顺序"><a class="markdownIt-Anchor" href="#元字符优先级顺序"></a> 元字符优先级顺序</h2>
+<p>正则表达式从左到右进行计算，并遵循优先级顺序，这与算术表达式非常类似。</p>
+<p>下表从最高到最低说明了各种正则表达式运算符的优先级顺序：</p>
+<table>
+<thead>
+<tr>
+<th>运算符</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>\</td>
+<td>转义符</td>
+</tr>
+<tr>
+<td>(), (?😃, (?=), []</td>
+<td>括号和中括号</td>
+</tr>
+<tr>
+<td>*, +, ?, {n}, {n,}, {n,m}</td>
+<td>限定符</td>
+</tr>
+<tr>
+<td>^, $, *任何元字符、任何字符*</td>
+<td>定位点和序列</td>
+</tr>
+<tr>
+<td>|</td>
+<td>替换</td>
+</tr>
+</tbody>
+</table>
+<p>字符具有高于替换运算符的优先级，使得“m|food”匹配“m”或“food”。若要匹配“mood”或“food”，请使用括号创建子表达式，从而产生“(m|f)ood”。</p>
+<h2 id="分组构造"><a class="markdownIt-Anchor" href="#分组构造"></a> 分组构造</h2>
+<p>在基本元字符章节，提到了 <code>()</code> 字符可以用来对表达式分组。实际上分组还有更多复杂的用法。</p>
+<p>所谓分组构造，是用来描述正则表达式的子表达式，用于捕获字符串中的子字符串。</p>
+<h2 id="捕获与非捕获"><a class="markdownIt-Anchor" href="#捕获与非捕获"></a> 捕获与非捕获</h2>
+<p>下表为分组构造中的捕获和非捕获分类。</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>描述</th>
+<th>捕获或非捕获</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(exp)</code></td>
+<td>匹配的子表达式</td>
+<td>捕获</td>
+</tr>
+<tr>
+<td><code>(?&lt;name&gt;exp)</code></td>
+<td>命名的反向引用</td>
+<td>捕获</td>
+</tr>
+<tr>
+<td><code>(?:exp)</code></td>
+<td>非捕获组</td>
+<td>非捕获</td>
+</tr>
+<tr>
+<td><code>(?=exp)</code></td>
+<td>零宽度正预测先行断言</td>
+<td>非捕获</td>
+</tr>
+<tr>
+<td><code>(?!exp)</code></td>
+<td>零宽度负预测先行断言</td>
+<td>非捕获</td>
+</tr>
+<tr>
+<td><code>(?&lt;=exp)</code></td>
+<td>零宽度正回顾后发断言</td>
+<td>非捕获</td>
+</tr>
+<tr>
+<td><code>(?&lt;!exp)</code></td>
+<td>零宽度负回顾后发断言</td>
+<td>非捕获</td>
+</tr>
+</tbody>
+</table>
+<p>注：Java 正则引擎不支持平衡组。</p>
+<h2 id="反向引用"><a class="markdownIt-Anchor" href="#反向引用"></a> 反向引用</h2>
+<h3 id="带编号的反向引用"><a class="markdownIt-Anchor" href="#带编号的反向引用"></a> 带编号的反向引用</h3>
+<p>带编号的反向引用使用以下语法：<code>\number</code></p>
+<p>其中<em>number</em> 是正则表达式中捕获组的序号位置。 例如，\4 匹配第四个捕获组的内容。 如果正则表达式模式中未定义<em>number</em>，则将发生分析错误</p>
+<p><strong>例 匹配重复的单词和紧随每个重复的单词的单词(不命名子表达式)</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// (\w+)\s\1\W(\w+) 匹配重复的单词和紧随每个重复的单词的单词</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(\\w+)\\s\\1\\W(\\w+)"</span>,</span><br><span class="line">		<span class="string">"He said that that was the the correct answer."</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">(\w+)\s\1\W(\w+),</span> <span class="attr">content:</span> <span class="string">He</span> <span class="string">said</span> <span class="string">that</span> <span class="string">that</span> <span class="string">was</span> <span class="string">the</span> <span class="string">the</span> <span class="string">correct</span> <span class="string">answer.</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">8</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">21</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">that</span> <span class="string">that</span> <span class="string">was</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">22</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">37</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">the</span> <span class="string">the</span> <span class="string">correct</span></span><br></pre></td></tr></table></figure>
+<p><strong>说明</strong></p>
+<p>(\w+): 匹配一个或多个单词字符。<br />
+\s: 与空白字符匹配。<br />
+\1: 匹配第一个组，即(\w+)。<br />
+\W: 匹配包括空格和标点符号的一个非单词字符。 这样可以防止正则表达式模式匹配从第一个捕获组的单词开头的单词。</p>
+<h3 id="命名的反向引用"><a class="markdownIt-Anchor" href="#命名的反向引用"></a> 命名的反向引用</h3>
+<p>命名后向引用通过使用下面的语法进行定义：<code>\k&lt;name &gt;</code></p>
+<p><strong>例 匹配重复的单词和紧随每个重复的单词的单词(命名子表达式)</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// (?&lt;duplicateWord&gt;\w+)\s\k&lt;duplicateWord&gt;\W(?&lt;nextWord&gt;\w+) 匹配重复的单词和紧随每个重复的单词的单词</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(?&lt;duplicateWord&gt;\\w+)\\s\\k&lt;duplicateWord&gt;\\W(?&lt;nextWord&gt;\\w+)"</span>,</span><br><span class="line">		<span class="string">"He said that that was the the correct answer."</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">(?&lt;duplicateWord&gt;\w+)\s\k&lt;duplicateWord&gt;\W(?&lt;nextWord&gt;\w+),</span> <span class="attr">content:</span> <span class="string">He</span> <span class="string">said</span> <span class="string">that</span> <span class="string">that</span> <span class="string">was</span> <span class="string">the</span> <span class="string">the</span> <span class="string">correct</span> <span class="string">answer.</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">8</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">21</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">that</span> <span class="string">that</span> <span class="string">was</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">22</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">37</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">the</span> <span class="string">the</span> <span class="string">correct</span></span><br></pre></td></tr></table></figure>
+<p><strong>说明</strong></p>
+<p>(?<duplicateWord>\w+): 匹配一个或多个单词字符。 命名此捕获组 duplicateWord。<br />
+\s: 与空白字符匹配。<br />
+\k<duplicateWord>: 匹配名为 duplicateWord 的捕获的组。<br />
+\W: 匹配包括空格和标点符号的一个非单词字符。 这样可以防止正则表达式模式匹配从第一个捕获组的单词开头的单词。<br />
+(?<nextWord>\w+): 匹配一个或多个单词字符。 命名此捕获组 nextWord。</p>
+<h2 id="非捕获组"><a class="markdownIt-Anchor" href="#非捕获组"></a> 非捕获组</h2>
+<p><code>(?:exp)</code> 表示当一个限定符应用到一个组，但组捕获的子字符串并非所需时，通常会使用非捕获组构造。</p>
+<p><strong>例 匹配以.结束的语句。</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 匹配由句号终止的语句。</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(?:\\b(?:\\w+)\\W*)+\\."</span>, <span class="string">"This is a short sentence. Never end"</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight groovy"><table><tr><td class="code"><pre><span class="line">regex = (?:\b(?:\w+)\W*)+\., <span class="string">content:</span> This is a <span class="keyword">short</span> sentence. Never end</span><br><span class="line">[<span class="number">1</span>th] <span class="string">start:</span> <span class="number">0</span>, <span class="string">end:</span> <span class="number">25</span>, <span class="string">group:</span> This is a <span class="keyword">short</span> sentence.</span><br></pre></td></tr></table></figure>
+<h2 id="零宽断言"><a class="markdownIt-Anchor" href="#零宽断言"></a> 零宽断言</h2>
+<p>用于查找在某些内容(但并不包括这些内容)之前或之后的东西，也就是说它们像\b,^,$那样用于指定一个位置，这个位置应该满足一定的条件(即断言)，因此它们也被称为零宽断言。</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(?=exp)</code></td>
+<td>匹配 exp 前面的位置</td>
+</tr>
+<tr>
+<td><code>(?&lt;=exp)</code></td>
+<td>匹配 exp 后面的位置</td>
+</tr>
+<tr>
+<td><code>(?!exp)</code></td>
+<td>匹配后面跟的不是 exp 的位置</td>
+</tr>
+<tr>
+<td><code>(?&lt;!exp)</code></td>
+<td>匹配前面不是 exp 的位置</td>
+</tr>
+</tbody>
+</table>
+<h3 id="匹配-exp-前面的位置"><a class="markdownIt-Anchor" href="#匹配-exp-前面的位置"></a> 匹配 exp 前面的位置</h3>
+<p><code>(?=exp)</code> 表示输入字符串必须匹配<em>子表达式</em>中的正则表达式模式，尽管匹配的子字符串未包含在匹配结果中。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// \b\w+(?=\sis\b) 表示要捕获is之前的单词</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"\\b\\w+(?=\\sis\\b)"</span>, <span class="string">"The dog is a Malamute."</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertFalse(findAll(<span class="string">"\\b\\w+(?=\\sis\\b)"</span>, <span class="string">"The island has beautiful birds."</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertFalse(findAll(<span class="string">"\\b\\w+(?=\\sis\\b)"</span>, <span class="string">"The pitch missed home plate."</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"\\b\\w+(?=\\sis\\b)"</span>, <span class="string">"Sunday is a weekend day."</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight taggerscript"><table><tr><td class="code"><pre><span class="line">regex = <span class="symbol">\b</span><span class="symbol">\w</span>+(?=<span class="symbol">\s</span>is<span class="symbol">\b</span>), content: The dog is a Malamute.</span><br><span class="line">[1th] start: 4, end: 7, group: dog</span><br><span class="line">regex = <span class="symbol">\b</span><span class="symbol">\w</span>+(?=<span class="symbol">\s</span>is<span class="symbol">\b</span>), content: The island has beautiful birds.</span><br><span class="line">not found</span><br><span class="line">regex = <span class="symbol">\b</span><span class="symbol">\w</span>+(?=<span class="symbol">\s</span>is<span class="symbol">\b</span>), content: The pitch missed home plate.</span><br><span class="line">not found</span><br><span class="line">regex = <span class="symbol">\b</span><span class="symbol">\w</span>+(?=<span class="symbol">\s</span>is<span class="symbol">\b</span>), content: Sunday is a weekend day.</span><br><span class="line">[1th] start: 0, end: 6, group: Sunday</span><br></pre></td></tr></table></figure>
+<p><strong>说明</strong></p>
+<p>\b: 在单词边界处开始匹配。</p>
+<p>\w+: 匹配一个或多个单词字符。</p>
+<p>(?=\sis\b): 确定单词字符是否后接空白字符和字符串“is”，其在单词边界处结束。 如果如此，则匹配成功。</p>
+<h3 id="匹配-exp-后面的位置"><a class="markdownIt-Anchor" href="#匹配-exp-后面的位置"></a> 匹配 exp 后面的位置</h3>
+<p><code>(?&lt;=exp)</code> 表示子表达式不得在输入字符串当前位置左侧出现，尽管子表达式未包含在匹配结果中。零宽度正回顾后发断言不会回溯。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// (?&lt;=\b20)\d&#123;2&#125;\b 表示要捕获以20开头的数字的后面部分</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(?&lt;=\\b20)\\d&#123;2&#125;\\b"</span>, <span class="string">"2010 1999 1861 2140 2009"</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p>输出</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">(?&lt;=\b20)\d&#123;2&#125;\b,</span> <span class="attr">content:</span> <span class="number">2010</span> <span class="number">1999</span> <span class="number">1861</span> <span class="number">2140</span> <span class="number">2009</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">4</span><span class="string">,</span> <span class="attr">group:</span> <span class="number">10</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">22</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">24</span><span class="string">,</span> <span class="attr">group:</span> <span class="number">09</span></span><br></pre></td></tr></table></figure>
+<p><strong>说明</strong></p>
+<p>\d{2}: 匹配两个十进制数字。</p>
+<p>{?&lt;=\b20): 如果两个十进制数字的字边界以小数位数“20”开头，则继续匹配。</p>
+<p>\b: 在单词边界处结束匹配。</p>
+<h3 id="匹配后面跟的不是-exp-的位置"><a class="markdownIt-Anchor" href="#匹配后面跟的不是-exp-的位置"></a> 匹配后面跟的不是 exp 的位置</h3>
+<p><code>(?!exp)</code> 表示输入字符串不得匹配<em>子表达式</em>中的正则表达式模式，尽管匹配的子字符串未包含在匹配结果中。</p>
+<p><strong>例 捕获未以“un”开头的单词</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// \b(?!un)\w+\b 表示要捕获未以“un”开头的单词</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"\\b(?!un)\\w+\\b"</span>, <span class="string">"unite one unethical ethics use untie ultimate"</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">\b(?!un)\w+\b,</span> <span class="attr">content:</span> <span class="string">unite</span> <span class="string">one</span> <span class="string">unethical</span> <span class="string">ethics</span> <span class="string">use</span> <span class="string">untie</span> <span class="string">ultimate</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">6</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">one</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">20</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">26</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">ethics</span></span><br><span class="line"><span class="string">[3th]</span> <span class="attr">start:</span> <span class="number">27</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">30</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">use</span></span><br><span class="line"><span class="string">[4th]</span> <span class="attr">start:</span> <span class="number">37</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">45</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">ultimate</span></span><br></pre></td></tr></table></figure>
+<p><strong>说明</strong></p>
+<p>\b: 在单词边界处开始匹配。</p>
+<p>(?!un): 确定接下来的两个的字符是否为“un”。 如果没有，则可能匹配。</p>
+<p>\w+: 匹配一个或多个单词字符。</p>
+<p>\b: 在单词边界处结束匹配。</p>
+<h3 id="匹配前面不是-exp-的位置"><a class="markdownIt-Anchor" href="#匹配前面不是-exp-的位置"></a> 匹配前面不是 exp 的位置</h3>
+<p><code>(?&lt;!exp)</code> 表示子表达式不得在输入字符串当前位置的左侧出现。 但是，任何不匹配子表达式 的子字符串不包含在匹配结果中。</p>
+<p><strong>例 捕获任意工作日</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// (?&lt;!(Saturday|Sunday) )\b\w+ \d&#123;1,2&#125;, \d&#123;4&#125;\b 表示要捕获任意工作日（即周一到周五）</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(?&lt;!(Saturday|Sunday) )\\b\\w+ \\d&#123;1,2&#125;, \\d&#123;4&#125;\\b"</span>, <span class="string">"Monday February 1, 2010"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(?&lt;!(Saturday|Sunday) )\\b\\w+ \\d&#123;1,2&#125;, \\d&#123;4&#125;\\b"</span>, <span class="string">"Wednesday February 3, 2010"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertFalse(findAll(<span class="string">"(?&lt;!(Saturday|Sunday) )\\b\\w+ \\d&#123;1,2&#125;, \\d&#123;4&#125;\\b"</span>, <span class="string">"Saturday February 6, 2010"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertFalse(findAll(<span class="string">"(?&lt;!(Saturday|Sunday) )\\b\\w+ \\d&#123;1,2&#125;, \\d&#123;4&#125;\\b"</span>, <span class="string">"Sunday February 7, 2010"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"(?&lt;!(Saturday|Sunday) )\\b\\w+ \\d&#123;1,2&#125;, \\d&#123;4&#125;\\b"</span>, <span class="string">"Monday, February 8, 2010"</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">regex = (?&lt;!(Saturday|Sunday) )\b\w+ \d&#123;<span class="number">1</span>,<span class="number">2</span>&#125;, \d&#123;<span class="number">4</span>&#125;\b, content: Monday February <span class="number">1</span>, <span class="number">2010</span></span><br><span class="line">[<span class="number">1</span>th] start: <span class="number">7</span>, end: <span class="number">23</span>, group: February <span class="number">1</span>, <span class="number">2010</span></span><br><span class="line">regex = (?&lt;!(Saturday|Sunday) )\b\w+ \d&#123;<span class="number">1</span>,<span class="number">2</span>&#125;, \d&#123;<span class="number">4</span>&#125;\b, content: Wednesday February <span class="number">3</span>, <span class="number">2010</span></span><br><span class="line">[<span class="number">1</span>th] start: <span class="number">10</span>, end: <span class="number">26</span>, group: February <span class="number">3</span>, <span class="number">2010</span></span><br><span class="line">regex = (?&lt;!(Saturday|Sunday) )\b\w+ \d&#123;<span class="number">1</span>,<span class="number">2</span>&#125;, \d&#123;<span class="number">4</span>&#125;\b, content: Saturday February <span class="number">6</span>, <span class="number">2010</span></span><br><span class="line"><span class="keyword">not</span> found</span><br><span class="line">regex = (?&lt;!(Saturday|Sunday) )\b\w+ \d&#123;<span class="number">1</span>,<span class="number">2</span>&#125;, \d&#123;<span class="number">4</span>&#125;\b, content: Sunday February <span class="number">7</span>, <span class="number">2010</span></span><br><span class="line"><span class="keyword">not</span> found</span><br><span class="line">regex = (?&lt;!(Saturday|Sunday) )\b\w+ \d&#123;<span class="number">1</span>,<span class="number">2</span>&#125;, \d&#123;<span class="number">4</span>&#125;\b, content: Monday, February <span class="number">8</span>, <span class="number">2010</span></span><br><span class="line">[<span class="number">1</span>th] start: <span class="number">8</span>, end: <span class="number">24</span>, group: February <span class="number">8</span>, <span class="number">2010</span></span><br></pre></td></tr></table></figure>
+<h2 id="贪婪与懒惰"><a class="markdownIt-Anchor" href="#贪婪与懒惰"></a> 贪婪与懒惰</h2>
+<p>当正则表达式中包含能接受重复的限定符时，通常的行为是（在使整个表达式能得到匹配的前提下）匹配<strong>尽可能多</strong>的字符。以这个表达式为例：a.*b，它将会匹配最长的以 a 开始，以 b 结束的字符串。如果用它来搜索 aabab 的话，它会匹配整个字符串 aabab。这被称为贪婪匹配。</p>
+<p>有时，我们更需要懒惰匹配，也就是匹配<strong>尽可能少</strong>的字符。前面给出的限定符都可以被转化为懒惰匹配模式，只要在它后面加上一个问号?。这样.*?就意味着匹配任意数量的重复，但是在能使整个匹配成功的前提下使用最少的重复。</p>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*?</code></td>
+<td>重复任意次，但尽可能少重复</td>
+</tr>
+<tr>
+<td><code>+?</code></td>
+<td>重复 1 次或更多次，但尽可能少重复</td>
+</tr>
+<tr>
+<td><code>??</code></td>
+<td>重复 0 次或 1 次，但尽可能少重复</td>
+</tr>
+<tr>
+<td><code>{n,m}?</code></td>
+<td>重复 n 到 m 次，但尽可能少重复</td>
+</tr>
+<tr>
+<td><code>{n,}?</code></td>
+<td>重复 n 次以上，但尽可能少重复</td>
+</tr>
+</tbody>
+</table>
+<p><strong>例 Java 正则中贪婪与懒惰的示例</strong></p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 贪婪匹配</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"a\\w*b"</span>, <span class="string">"abaabaaabaaaab"</span>) &gt; <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// 懒惰匹配</span></span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"a\\w*?b"</span>, <span class="string">"abaabaaabaaaab"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"a\\w+?b"</span>, <span class="string">"abaabaaabaaaab"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"a\\w??b"</span>, <span class="string">"abaabaaabaaaab"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"a\\w&#123;0,4&#125;?b"</span>, <span class="string">"abaabaaabaaaab"</span>) &gt; <span class="number">0</span>);</span><br><span class="line">Assert.assertTrue(findAll(<span class="string">"a\\w&#123;3,&#125;?b"</span>, <span class="string">"abaabaaabaaaab"</span>) &gt; <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+<p><strong>输出</strong></p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">a\w*b,</span> <span class="attr">content:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">0</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">14</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">a\w*?b,</span> <span class="attr">content:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">0</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">ab</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aab</span></span><br><span class="line"><span class="string">[3th]</span> <span class="attr">start:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaab</span></span><br><span class="line"><span class="string">[4th]</span> <span class="attr">start:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">14</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaaab</span></span><br><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">a\w+?b,</span> <span class="attr">content:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">0</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">abaab</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaab</span></span><br><span class="line"><span class="string">[3th]</span> <span class="attr">start:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">14</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaaab</span></span><br><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">a\w??b,</span> <span class="attr">content:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">0</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">ab</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aab</span></span><br><span class="line"><span class="string">[3th]</span> <span class="attr">start:</span> <span class="number">6</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aab</span></span><br><span class="line"><span class="string">[4th]</span> <span class="attr">start:</span> <span class="number">11</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">14</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aab</span></span><br><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">a\w&#123;0,4&#125;?b,</span> <span class="attr">content:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">0</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">ab</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">2</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aab</span></span><br><span class="line"><span class="string">[3th]</span> <span class="attr">start:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaab</span></span><br><span class="line"><span class="string">[4th]</span> <span class="attr">start:</span> <span class="number">9</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">14</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaaab</span></span><br><span class="line"><span class="string">regex</span> <span class="string">=</span> <span class="string">a\w&#123;3,&#125;?b,</span> <span class="attr">content:</span> <span class="string">abaabaaabaaaab</span></span><br><span class="line"><span class="string">[1th]</span> <span class="attr">start:</span> <span class="number">0</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">abaab</span></span><br><span class="line"><span class="string">[2th]</span> <span class="attr">start:</span> <span class="number">5</span><span class="string">,</span> <span class="attr">end:</span> <span class="number">14</span><span class="string">,</span> <span class="attr">group:</span> <span class="string">aaabaaaab</span></span><br></pre></td></tr></table></figure>
+<p><strong>说明</strong></p>
+<p>本例中代码展示的是使用不同贪婪或懒惰策略去查找字符串&quot;abaabaaabaaaab&quot; 中匹配<strong>以&quot;a&quot;开头，以&quot;b&quot;结尾的所有子字符串</strong>。</p>
+<p>请从输出结果中，细细体味使用不同的贪婪或懒惰策略，对于匹配子字符串有什么影响。</p>
+<h2 id="最实用的正则"><a class="markdownIt-Anchor" href="#最实用的正则"></a> 最实用的正则</h2>
+<h3 id="校验中文"><a class="markdownIt-Anchor" href="#校验中文"></a> 校验中文</h3>
+<p>**描述：**校验字符串中只能有中文字符（不包括中文标点符号）。中文字符的 Unicode 编码范围是\u4e00 到 \u9fa5。</p>
+<p>如有兴趣，可以参考<a href="http://baike.baidu.com/link?url=3xi0vmvCIGKQLJZdn_BYhQ1IDFsoSJMrya6_eOjCBb7A6cRIW-zhZFLC9Yh8wjxU6A_HCfNuP8FBBXU9CN3Wcq" target="_blank" rel="noopener"><em><strong>百度百科-Unicode</strong></em></a> 。</p>
+<figure class="highlight taggerscript"><table><tr><td class="code"><pre><span class="line">^[<span class="symbol">\u</span>4e00-<span class="symbol">\u</span>9fa5]+$</span><br></pre></td></tr></table></figure>
+<p><strong>匹配：</strong> 春眠不觉晓</p>
+<p>**不匹配：**春眠不觉晓，</p>
+<h3 id="校验身份证号码"><a class="markdownIt-Anchor" href="#校验身份证号码"></a> 校验身份证号码</h3>
+<p>**描述：**身份证为 15 位或 18 位。15 位是第一代身份证。从 1999 年 10 月 1 日起，全国实行公民身份证号码制度，居民身份证编号由原 15 位升至 18 位。</p>
+<p><strong>15 位身份证</strong></p>
+<p>**描述：**由 15 位数字组成。排列顺序从左至右依次为：六位数字地区码；六位数字出生日期；三位顺序号，其中 15 位男为单数，女为双数。</p>
+<p><strong>18 位身份证</strong></p>
+<p>**描述：**由十七位数字本体码和一位数字校验码组成。排列顺序从左至右依次为：六位数字地区码；八位数字出生日期；三位数字顺序码和一位数字校验码（也可能是 X）。</p>
+<p>身份证号含义详情请见：<a href="http://baike.baidu.com/link?url=5mYlYNE0RsSe2D4tydajtiaR8hAm4pPZ0FHSPuQ05N4f6H-i7qPuw7sY5KfNuiOVJWVWZvU4gf3IY-vIcKdP1CU4Fv-9pKmFQB50qGv_hZT2dkGbkd9--8_saY7omV80vEw9ixVeEwda37fHswfmtyU4QSiBG5s3K5K-JnYr1dqNlPu0f3t008UcLh5-wyID" target="_blank" rel="noopener"><em><strong>百度百科-居民身份证号码</strong></em></a></p>
+<p><strong>地区码（6 位）</strong></p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">(<span class="number">1</span>[<span class="number">1</span><span class="number">-5</span>]|<span class="number">2</span>[<span class="number">1</span><span class="number">-3</span>]|<span class="number">3</span>[<span class="number">1</span><span class="number">-7</span>]|<span class="number">4</span>[<span class="number">1</span><span class="number">-3</span>]|<span class="number">5</span>[<span class="number">0</span><span class="number">-4</span>]|<span class="number">6</span>[<span class="number">1</span><span class="number">-5</span>])\d&#123;<span class="number">4</span>&#125;</span><br></pre></td></tr></table></figure>
+<p><strong>出生日期（8 位）</strong></p>
+<p>注：下面的是 18 位身份证的有效出生日期，如果是 15 位身份证，只要将第一个\d{4}改为\d{2}即可。</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">((\d&#123;4&#125;((0[<span class="string">13578</span>]|1[<span class="string">02</span>])(0[<span class="string">1-9</span>]|[<span class="string">12</span>]\d|3[<span class="string">01</span>])|(0[<span class="string">13456789</span>]|1[<span class="string">012</span>])(0[<span class="string">1-9</span>]|[<span class="string">12</span>]\d|30)|02(0[<span class="string">1-9</span>]|1\d|2[<span class="string">0-8</span>])))|([<span class="string">02468</span>][<span class="symbol">048</span>]|[<span class="string">13579</span>][<span class="symbol">26</span>])0229)</span><br></pre></td></tr></table></figure>
+<p><strong>15 位有效身份证</strong></p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">^((1[<span class="string">1-5</span>]|2[<span class="string">1-3</span>]|3[<span class="string">1-7</span>]|4[<span class="string">1-3</span>]|5[<span class="string">0-4</span>]|6[<span class="string">1-5</span>])\d&#123;4&#125;)((\d&#123;2&#125;((0[<span class="string">13578</span>]|1[<span class="string">02</span>])(0[<span class="string">1-9</span>]|[<span class="string">12</span>]\d|3[<span class="string">01</span>])|(0[<span class="string">13456789</span>]|1[<span class="string">012</span>])(0[<span class="string">1-9</span>]|[<span class="string">12</span>]\d|30)|02(0[<span class="string">1-9</span>]|1\d|2[<span class="string">0-8</span>])))|([<span class="string">02468</span>][<span class="symbol">048</span>]|[<span class="string">13579</span>][<span class="symbol">26</span>])0229)(\d&#123;3&#125;)$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**110001700101031</p>
+<p>**不匹配：**110001701501031</p>
+<p><strong>18 位有效身份证</strong></p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">^((1[<span class="string">1-5</span>]|2[<span class="string">1-3</span>]|3[<span class="string">1-7</span>]|4[<span class="string">1-3</span>]|5[<span class="string">0-4</span>]|6[<span class="string">1-5</span>])\d&#123;4&#125;)((\d&#123;4&#125;((0[<span class="string">13578</span>]|1[<span class="string">02</span>])(0[<span class="string">1-9</span>]|[<span class="string">12</span>]\d|3[<span class="string">01</span>])|(0[<span class="string">13456789</span>]|1[<span class="string">012</span>])(0[<span class="string">1-9</span>]|[<span class="string">12</span>]\d|30)|02(0[<span class="string">1-9</span>]|1\d|2[<span class="string">0-8</span>])))|([<span class="string">02468</span>][<span class="symbol">048</span>]|[<span class="string">13579</span>][<span class="symbol">26</span>])0229)(\d&#123;3&#125;(\d|X))$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**110001199001010310 | 11000019900101015X</p>
+<p>**不匹配：**990000199001010310 | 110001199013010310</p>
+<h3 id="校验有效用户名-密码"><a class="markdownIt-Anchor" href="#校验有效用户名-密码"></a> 校验有效用户名、密码</h3>
+<p>**描述：**长度为 6-18 个字符，允许输入字母、数字、下划线，首字符必须为字母。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">^[a-zA-Z]\w&#123;<span class="number">5</span>,<span class="number">17</span>&#125;$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**he_llo@worl.d.com | <a href="mailto:hel.l-o@wor-ld.museum">hel.l-o@wor-ld.museum</a> | <a href="mailto:h1ello@123.com">h1ello@123.com</a></p>
+<p>**不匹配：**hello@worl_d.com | he&amp;llo@world.co1 | .hello@wor#.co.uk</p>
+<h3 id="校验邮箱"><a class="markdownIt-Anchor" href="#校验邮箱"></a> 校验邮箱</h3>
+<p>**描述：**不允许使用 IP 作为域名，如 : <a href="mailto:hello@154.145.68.12">hello@154.145.68.12</a></p>
+<p><code>@</code>符号前的邮箱用户和<code>.</code>符号前的域名(domain)必须满足以下条件：</p>
+<ul>
+<li>字符只能是英文字母、数字、下划线<code>_</code>、<code>.</code>、<code>-</code> ；</li>
+<li>首字符必须为字母或数字；</li>
+<li><code>_</code>、<code>.</code>、<code>-</code> 不能连续出现。</li>
+</ul>
+<p>域名的根域只能为字母，且至少为两个字符。</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">^[<span class="string">A-Za-z0-9</span>](<span class="link">([_\.\-]?[a-zA-Z0-9]+</span>)<span class="emphasis">*)@([A-Za-z0-9]+)(([\.\-]?[a-zA-Z0-9]+)*</span>)\.([A-Za-z]&#123;2,&#125;)$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**he_llo@worl.d.com | <a href="mailto:hel.l-o@wor-ld.museum">hel.l-o@wor-ld.museum</a> | <a href="mailto:h1ello@123.com">h1ello@123.com</a></p>
+<p>**不匹配：**hello@worl_d.com | he&amp;llo@world.co1 | .hello@wor#.co.uk</p>
+<h3 id="校验-url"><a class="markdownIt-Anchor" href="#校验-url"></a> 校验 URL</h3>
+<p>**描述：**校验 URL。支持 http、https、ftp、ftps。</p>
+<figure class="highlight gcode"><table><tr><td class="code"><pre><span class="line">^<span class="comment">(ht|f)</span><span class="comment">(tp|tps)</span>\:<span class="comment">//[a-zA-Z0-9\-\.]+\.([a-zA-Z]&#123;2,3&#125;)?(/\S*)?$</span></span><br></pre></td></tr></table></figure>
+<p>**匹配：**<a href="http://google.com/help/me" target="_blank" rel="noopener">http://google.com/help/me</a> | <a href="http://www.google.com/help/me/" target="_blank" rel="noopener">http://www.google.com/help/me/</a> | <a href="https://www.google.com/help.asp" target="_blank" rel="noopener">https://www.google.com/help.asp</a> | <a href="ftp://www.google.com">ftp://www.google.com</a> | ftps://google.org</p>
+<p>**不匹配：**<a href="http://un/www.google.com/index.asp" target="_blank" rel="noopener">http://un/www.google.com/index.asp</a></p>
+<h3 id="校验时间"><a class="markdownIt-Anchor" href="#校验时间"></a> 校验时间</h3>
+<p>**描述：**校验时间。时、分、秒必须是有效数字，如果数值不是两位数，十位需要补零。</p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">^([<span class="string">0-1</span>][<span class="symbol">0-9</span>]|[<span class="string">2</span>][<span class="symbol">0-3</span>]):([<span class="string">0-5</span>][<span class="symbol">0-9</span>])$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**00:00:00 | 23:59:59 | 17:06:30</p>
+<p>**不匹配：**17:6:30 | 24:16:30</p>
+<h3 id="校验日期"><a class="markdownIt-Anchor" href="#校验日期"></a> 校验日期</h3>
+<p>**描述：**校验日期。日期满足以下条件：</p>
+<ul>
+<li>格式 yyyy-MM-dd 或 yyyy-M-d</li>
+<li>连字符可以没有或是“-”、“/”、“.”之一</li>
+<li>闰年的二月可以有 29 日；而平年不可以。</li>
+<li>一、三、五、七、八、十、十二月为 31 日。四、六、九、十一月为 30 日。</li>
+</ul>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">^(?:(?!0000)[<span class="string">0-9</span>]&#123;4&#125;([<span class="string">-/.</span>]?)(?:(?:0?[<span class="string">1-9</span>]|1[<span class="string">0-2</span>])\1(?:0?[<span class="string">1-9</span>]|1[<span class="string">0-9</span>]|2[<span class="string">0-8</span>])|(?:0?[<span class="string">13-9</span>]|1[<span class="string">0-2</span>])\1(?:29|30)|(?:0?[<span class="string">13578</span>]|1[<span class="string">02</span>])\1(?:31))|(?:[<span class="string">0-9</span>]&#123;2&#125;(?:0[<span class="string">48</span>]|[<span class="string">2468</span>][<span class="symbol">048</span>]|[<span class="string">13579</span>][<span class="symbol">26</span>])|(?:0[<span class="string">48</span>]|[<span class="string">2468</span>][<span class="symbol">048</span>]|[<span class="string">13579</span>][<span class="symbol">26</span>])00)([-/.]?)0?2\2(?:29))$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**2016/1/1 | 2016/01/01 | 20160101 | 2016-01-01 | 2016.01.01 | 2000-02-29</p>
+<p>**不匹配：**2001-02-29 | 2016/12/32 | 2016/6/31 | 2016/13/1 | 2016/0/1</p>
+<h3 id="校验中国手机号码"><a class="markdownIt-Anchor" href="#校验中国手机号码"></a> 校验中国手机号码</h3>
+<p>**描述：**中国手机号码正确格式：11 位数字。</p>
+<p>移动有 16 个号段：134、135、136、137、138、139、147、150、151、152、157、158、159、182、187、188。其中 147、157、188 是 3G 号段，其他都是 2G 号段。联通有 7 种号段：130、131、132、155、156、185、186。其中 186 是 3G（WCDMA）号段，其余为 2G 号段。电信有 4 个号段：133、153、180、189。其中 189 是 3G 号段（CDMA2000），133 号段主要用作无线网卡号。总结：13 开头手机号 0-9；15 开头手机号 0-3、5-9；18 开头手机号 0、2、5-9。</p>
+<p>此外，中国在国际上的区号为 86，所以手机号开头有+86、86 也是合法的。</p>
+<p>以上信息来源于 <a href="http://baike.baidu.com/link?url=Bia2K_f8rGcakOlP4d9m_-DNSgXU5-0NDP0pPavS0ZbhRHQcUFUTbMERjdO4u7cvkpTJaIDeUXq_EXWnMqXMdSuMQDX3NAbZXAlZYl_V18KATWF7y1EFzUyJ62rf3bAN" target="_blank" rel="noopener"><em><strong>百度百科-手机号</strong></em></a></p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">^((\+)?<span class="number">86</span>\s*)?((<span class="number">13</span>[<span class="number">0</span><span class="number">-9</span>])|(<span class="number">15</span>([<span class="number">0</span><span class="number">-3</span>]|[<span class="number">5</span><span class="number">-9</span>]))|(<span class="number">18</span>[<span class="number">0</span>,<span class="number">2</span>,<span class="number">5</span><span class="number">-9</span>]))\d&#123;<span class="number">8</span>&#125;$</span><br></pre></td></tr></table></figure>
+<p><strong>匹配：</strong>+86 18012345678 | 86 18012345678 | 15812345678</p>
+<p>**不匹配：**15412345678 | 12912345678 | 180123456789</p>
+<h3 id="校验中国固话号码"><a class="markdownIt-Anchor" href="#校验中国固话号码"></a> 校验中国固话号码</h3>
+<p>**描述：**固话号码，必须加区号（以 0 开头）。<br />
+3 位有效区号：010、020~029，固话位数为 8 位。<br />
+4 位有效区号：03xx 开头到 09xx，固话位数为 7。</p>
+<p>如果想了解更详细的信息，请参考 <a href="http://baike.baidu.com/link?url=sX8JoxK1ja5uM5pDYvQe27_QsyqAZ_78DLSeEvwjqtG_uXqU6p5Oh7CPbImNbnwu1ClOmD8udgDIswZfYzQIw0z3BYZO3eTplvVDzieuowTYqt7yHGDAqyT7o4vvGhg4" target="_blank" rel="noopener"><em><strong>百度百科-电话区号</strong></em></a> 。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">^(<span class="number">010</span>|<span class="number">02</span>[<span class="number">0</span><span class="number">-9</span>])(\s|-)\d&#123;<span class="number">8</span>&#125;|(<span class="number">0</span>[<span class="number">3</span><span class="number">-9</span>]\d&#123;<span class="number">2</span>&#125;)(\s|-)\d&#123;<span class="number">7</span>&#125;$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**010-12345678 | 010 12345678 | 0512-1234567 | 0512 1234567</p>
+<p>**不匹配：**1234567 | 12345678</p>
+<h3 id="校验-ipv4-地址"><a class="markdownIt-Anchor" href="#校验-ipv4-地址"></a> 校验 IPv4 地址</h3>
+<p>**描述：**IP 地址是一个 32 位的二进制数，通常被分割为 4 个“8 位二进制数”（也就是 4 个字节）。IP 地址通常用“点分十进制”表示成（a.b.c.d）的形式，其中，a,b,c,d 都是 0~255 之间的十进制整数。</p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">^([<span class="number">01</span>]?\d\d?|<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]\d|<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>])\.([<span class="number">01</span>]?\d\d?|<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]\d|<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>])\.([<span class="number">01</span>]?\d\d?|<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]\d|<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>])\.([<span class="number">01</span>]?\d\d?|<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]\d|<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>])$</span><br></pre></td></tr></table></figure>
+<p>**匹配：**0.0.0.0 | 255.255.255.255 | 127.0.0.1</p>
+<p>**不匹配：**10.10.10 | 10.10.10.256</p>
+<h3 id="校验-ipv6-地址"><a class="markdownIt-Anchor" href="#校验-ipv6-地址"></a> 校验 IPv6 地址</h3>
+<p>**描述：**IPv6 的 128 位地址通常写成 8 组，每组为四个十六进制数的形式。</p>
+<p>IPv6 地址可以表示为以下形式：</p>
+<ul>
+<li>IPv6 地址</li>
+<li>零压缩 IPv6 地址(<a href="https://tools.ietf.org/html/rfc5952#section-2.2" target="_blank" rel="noopener">section 2.2 of rfc5952</a>)</li>
+<li>带有本地链接区域索引的 IPv6 地址 (<a href="https://tools.ietf.org/html/rfc4007#section-11" target="_blank" rel="noopener">section 11 of rfc4007</a>)</li>
+<li>嵌入 IPv4 的 IPv6 地址(<a href="https://tools.ietf.org/html/rfc6052#section-2" target="_blank" rel="noopener">section 2 of rfc6052</a></li>
+<li>映射 IPv4 的 IPv6 地址 (<a href="https://tools.ietf.org/html/rfc2765#section-2.1" target="_blank" rel="noopener">section 2.1 of rfc2765</a>)</li>
+<li>翻译 IPv4 的 IPv6 地址 (<a href="https://tools.ietf.org/html/rfc2765#section-2.1" target="_blank" rel="noopener">section 2.1 of rfc2765</a>)</li>
+</ul>
+<p>显然，IPv6 地址的表示方式很复杂。你也可以参考</p>
+<p><a href="http://baike.baidu.com/link?url=D3nmh0q_G_ZVmxXFG79mjjNfT4hs9fwjqUgygh-tvhq43KYqx88HV27WEXmoT4nA4iGzXwXMm5L-j50C2gSL5q" target="_blank" rel="noopener"><em><strong>百度百科-IPv6</strong></em></a></p>
+<p><a href="http://stackoverflow.com/questions/53497/regular-expression-that-matches-valid-ipv6-addresses" target="_blank" rel="noopener"><em><strong>Stack overflow 上的 IPv6 正则表达高票答案</strong></em></a></p>
+<figure class="highlight angelscript"><table><tr><td class="code"><pre><span class="line">(([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">7</span>,<span class="number">7</span>&#125;[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">7</span>&#125;:|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">6</span>&#125;:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">5</span>&#125;(:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">1</span>,<span class="number">2</span>&#125;|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">4</span>&#125;(:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">1</span>,<span class="number">3</span>&#125;|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">3</span>&#125;(:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">1</span>,<span class="number">4</span>&#125;|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">2</span>&#125;(:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">1</span>,<span class="number">5</span>&#125;|[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:((:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">1</span>,<span class="number">6</span>&#125;)|:((:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">1</span>,<span class="number">7</span>&#125;|:)|fe80:(:[<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">0</span>,<span class="number">4</span>&#125;)&#123;<span class="number">0</span>,<span class="number">4</span>&#125;%[<span class="number">0</span><span class="number">-9</span>a-zA-Z]&#123;<span class="number">1</span>,&#125;|::(ffff(:<span class="number">0</span>&#123;<span class="number">1</span>,<span class="number">4</span>&#125;)&#123;<span class="number">0</span>,<span class="number">1</span>&#125;:)&#123;<span class="number">0</span>,<span class="number">1</span>&#125;((<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>]|(<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]|<span class="number">1</span>&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])\.)&#123;<span class="number">3</span>,<span class="number">3</span>&#125;(<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>]|(<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]|<span class="number">1</span>&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])|([<span class="number">0</span><span class="number">-9</span>a-fA-F]&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:)&#123;<span class="number">1</span>,<span class="number">4</span>&#125;:((<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>]|(<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]|<span class="number">1</span>&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])\.)&#123;<span class="number">3</span>,<span class="number">3</span>&#125;(<span class="number">25</span>[<span class="number">0</span><span class="number">-5</span>]|(<span class="number">2</span>[<span class="number">0</span><span class="number">-4</span>]|<span class="number">1</span>&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>])&#123;<span class="number">0</span>,<span class="number">1</span>&#125;[<span class="number">0</span><span class="number">-9</span>]))</span><br></pre></td></tr></table></figure>
+<p>**匹配：**1:2:3:4:5:6:7:8 | 1:: | 1::8 | 1::6:7:8 | 1::5:6:7:8 | 1::4:5:6:7:8 | 1::3:4:5:6:7:8 | ::2:3:4:5:6:7:8 | 1:2:3:4:5:6:7:: | 1:2:3:4:5:6::8 | 1:2:3:4:5::8 | 1:2:3:4::8 | 1:2:3::8 | 1:2::8 | 1::8 | ::8 | fe80::7:8%1 | ::255.255.255.255 | 2001:db8:3:4::192.0.2.33 | 64:ff9b::192.0.2.33</p>
+<p>**不匹配：**1.2.3.4.5.6.7.8 | 1::2::3</p>
+<h3 id="特定字符"><a class="markdownIt-Anchor" href="#特定字符"></a> 特定字符</h3>
+<p>匹配长度为 3 的字符串：<code>^.{3}$</code>。</p>
+<p>匹配由 26 个英文字母组成的字符串：<code>^[A-Za-z]+$</code>。</p>
+<p>匹配由 26 个大写英文字母组成的字符串：<code>^[A-Z]+$</code>。</p>
+<p>匹配由 26 个小写英文字母组成的字符串：<code>^[a-z]+$</code>。</p>
+<p>匹配由数字和 26 个英文字母组成的字符串：<code>^[A-Za-z0-9]+$</code>。</p>
+<p>匹配由数字、26 个英文字母或者下划线组成的字符串：<code>^\w+$</code>。</p>
+<h3 id="特定数字"><a class="markdownIt-Anchor" href="#特定数字"></a> 特定数字</h3>
+<p>匹配正整数：<code>^[1-9]\d*$</code></p>
+<p>匹配负整数：<code>^-[1-9]\d*$</code></p>
+<p>匹配整数：<code>^(-?[1-9]\d*)|0$</code></p>
+<p>匹配正浮点数：<code>^[1-9]\d*\.\d+|0\.\d+$</code></p>
+<p>匹配负浮点数：<code>^-([1-9]\d*\.\d*|0\.\d*[1-9]\d*)$</code></p>
+<p>匹配浮点数：<code>^-?([1-9]\d*\.\d*|0\.\d*[1-9]\d*|0?\.0+|0)$</code></p>
+<h2 id="速查元字符字典"><a class="markdownIt-Anchor" href="#速查元字符字典"></a> 速查元字符字典</h2>
+<p>为了方便快查正则的元字符含义，在本节根据元字符的功能集中罗列正则的各种元字符。</p>
+<h3 id="限定符"><a class="markdownIt-Anchor" href="#限定符"></a> 限定符</h3>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>*</code></td>
+<td>匹配前面的子表达式零次或多次。例如，zo* 能匹配 “z” 以及 “zoo”。* 等价于{0,}。</td>
+</tr>
+<tr>
+<td><code>+</code></td>
+<td>匹配前面的子表达式一次或多次。例如，‘zo+’ 能匹配 “zo” 以及 “zoo”，但不能匹配 “z”。+ 等价于 {1,}。</td>
+</tr>
+<tr>
+<td><code>?</code></td>
+<td>匹配前面的子表达式零次或一次。例如，“do(es)?” 可以匹配 “do” 或 “does” 中的&quot;do&quot; 。? 等价于 {0,1}。</td>
+</tr>
+<tr>
+<td><code>{n}</code></td>
+<td>n 是一个非负整数。匹配确定的 n 次。例如，‘o{2}’ 不能匹配 “Bob” 中的 ‘o’，但是能匹配 “food” 中的两个 o。</td>
+</tr>
+<tr>
+<td><code>{n,}</code></td>
+<td>n 是一个非负整数。至少匹配 n 次。例如，‘o{2,}’ 不能匹配 “Bob” 中的 ‘o’，但能匹配 “foooood” 中的所有 o。‘o{1,}’ 等价于 ‘o+’。‘o{0,}’ 则等价于 ‘o*’。</td>
+</tr>
+<tr>
+<td><code>{n,m}</code></td>
+<td>m 和 n 均为非负整数，其中 n &lt;= m。最少匹配 n 次且最多匹配 m 次。例如，“o{1,3}” 将匹配 “fooooood” 中的前三个 o。‘o{0,1}’ 等价于 ‘o?’。请注意在逗号和两个数之间不能有空格。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="定位符"><a class="markdownIt-Anchor" href="#定位符"></a> 定位符</h3>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>^</code></td>
+<td>匹配输入字符串开始的位置。如果设置了 RegExp 对象的 Multiline 属性，^ 还会与 \n 或 \r 之后的位置匹配。</td>
+</tr>
+<tr>
+<td><code>$</code></td>
+<td>匹配输入字符串结尾的位置。如果设置了 RegExp 对象的 Multiline 属性，$ 还会与 \n 或 \r 之前的位置匹配。</td>
+</tr>
+<tr>
+<td><code>\b</code></td>
+<td>匹配一个字边界，即字与空格间的位置。</td>
+</tr>
+<tr>
+<td><code>\B</code></td>
+<td>非字边界匹配。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="非打印字符"><a class="markdownIt-Anchor" href="#非打印字符"></a> 非打印字符</h3>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\cx</code></td>
+<td>匹配由 x 指明的控制字符。例如， \cM 匹配一个 Control-M 或回车符。x 的值必须为 A-Z 或 a-z 之一。否则，将 c 视为一个原义的 ‘c’ 字符。</td>
+</tr>
+<tr>
+<td><code>\f</code></td>
+<td>匹配一个换页符。等价于 \x0c 和 \cL。</td>
+</tr>
+<tr>
+<td><code>\n</code></td>
+<td>匹配一个换行符。等价于 \x0a 和 \cJ。</td>
+</tr>
+<tr>
+<td><code>\r</code></td>
+<td>匹配一个回车符。等价于 \x0d 和 \cM。</td>
+</tr>
+<tr>
+<td><code>\s</code></td>
+<td>匹配任何空白字符，包括空格、制表符、换页符等等。等价于 [ \f\n\r\t\v]。</td>
+</tr>
+<tr>
+<td><code>\S</code></td>
+<td>匹配任何非空白字符。等价于 [ \f\n\r\t\v]。</td>
+</tr>
+<tr>
+<td><code>\t</code></td>
+<td>匹配一个制表符。等价于 \x09 和 \cI。</td>
+</tr>
+<tr>
+<td><code>\v</code></td>
+<td>匹配一个垂直制表符。等价于 \x0b 和 \cK。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="分组"><a class="markdownIt-Anchor" href="#分组"></a> 分组</h3>
+<table>
+<thead>
+<tr>
+<th>表达式</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>(exp)</code></td>
+<td>匹配的子表达式。()中的内容就是子表达式。</td>
+</tr>
+<tr>
+<td><code>(?&lt;name&gt;exp)</code></td>
+<td>命名的子表达式（反向引用）。</td>
+</tr>
+<tr>
+<td><code>(?:exp)</code></td>
+<td>非捕获组，表示当一个限定符应用到一个组，但组捕获的子字符串并非所需时，通常会使用非捕获组构造。</td>
+</tr>
+<tr>
+<td><code>(?=exp)</code></td>
+<td>匹配 exp 前面的位置。</td>
+</tr>
+<tr>
+<td><code>(?&lt;=exp)</code></td>
+<td>匹配 exp 后面的位置。</td>
+</tr>
+<tr>
+<td><code>(?!exp)</code></td>
+<td>匹配后面跟的不是 exp 的位置。</td>
+</tr>
+<tr>
+<td><code>(?&lt;!exp)</code></td>
+<td>匹配前面不是 exp 的位置。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="特殊符号"><a class="markdownIt-Anchor" href="#特殊符号"></a> 特殊符号</h3>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\</code></td>
+<td>将下一个字符标记为或特殊字符、或原义字符、或向后引用、或八进制转义符。例如， ‘n’ 匹配字符 ‘n’。’\n’ 匹配换行符。序列 ‘\’ 匹配 “”，而 ‘(’ 则匹配 “(”。</td>
+</tr>
+<tr>
+<td><code>\|</code></td>
+<td>指明两项之间的一个选择。</td>
+</tr>
+<tr>
+<td><code>[]</code></td>
+<td>匹配方括号范围内的任意一个字符。形式如：[xyz]、[<sup>xyz]、[a-z]、[</sup>a-z]、[x,y,z]</td>
+</tr>
+</tbody>
+</table>
+<h2 id="参考资料"><a class="markdownIt-Anchor" href="#参考资料"></a> 参考资料</h2>
+<ul>
+<li><strong>教程</strong>
+<ul>
+<li><a href="http://deerchao.net/tutorials/regex/regex.htm" target="_blank" rel="noopener">正则表达式 30 分钟入门教程</a></li>
+<li><a href="https://msdn.microsoft.com/zh-cn/library/d9eze55x(v=vs.80).aspx" target="_blank" rel="noopener">msdn 正则表达式教程</a></li>
+<li><a href="http://blog.csdn.net/lxcnn/article/details/4362500" target="_blank" rel="noopener">正则应用之——日期正则表达式</a></li>
+<li><a href="https://github.com/ziishaned/learn-regex" target="_blank" rel="noopener">learn-regex</a></li>
+<li><a href="http://www.regexlib.com/" target="_blank" rel="noopener">http://www.regexlib.com/</a></li>
+</ul>
+</li>
+<li><strong>文章/常用正则表达式</strong>
+<ul>
+<li><a href="https://github.com/VincentSit/ChinaMobilePhoneNumberRegex/blob/master/README-CN.md" target="_blank" rel="noopener">ChinaMobilePhoneNumberRegex</a></li>
+<li><a href="https://github.com/cdoco/common-regex" target="_blank" rel="noopener">https://github.com/cdoco/common-regex</a></li>
+</ul>
+</li>
+<li><strong>正则测试</strong>
+<ul>
+<li><a href="https://regex101.com/" target="_blank" rel="noopener">https://regex101.com</a></li>
+<li><a href="https://regexr.com/" target="_blank" rel="noopener">https://regexr.com</a></li>
+<li><a href="https://www.debuggex.com/" target="_blank" rel="noopener">https://www.debuggex.com</a></li>
+<li><a href="https://extendsclass.com/regex-tester.html" target="_blank" rel="noopener">https://extendsclass.com/regex-tester.html</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zhang Peng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dunwu.github.io/blog/tools/regex/" title="正则表达式">https://dunwu.github.io/blog/tools/regex/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/%E5%B7%A5%E5%85%B7/" rel="tag"># 工具</a>
+              <a href="/blog/tags/%E6%AD%A3%E5%88%99/" rel="tag"># 正则</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/network/http/" rel="next" title="网络协议之 HTTP">
+                  <i class="fa fa-chevron-left"></i> 网络协议之 HTTP
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/coding/shell/" rel="prev" title="一篇文章让你彻底掌握 Shell">
+                  一篇文章让你彻底掌握 Shell <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  <div class="comments" id="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#简介"><span class="nav-text"> 简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基本元字符"><span class="nav-text"> 基本元字符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#多选-"><span class="nav-text"> 多选 - |</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分组-"><span class="nav-text"> 分组 - ()</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指定单字符有效范围-"><span class="nav-text"> 指定单字符有效范围 - []</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指定单字符无效范围-"><span class="nav-text"> 指定单字符无效范围 - [^]</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#限制字符数量-"><span class="nav-text"> 限制字符数量 - {}</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#转义字符-"><span class="nav-text"> 转义字符 - &#x2F;</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#指定表达式字符串的开始和结尾-"><span class="nav-text"> 指定表达式字符串的开始和结尾 - ^、$</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#等价字符"><span class="nav-text"> 等价字符</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#表示某一类型字符的等价字符"><span class="nav-text"> 表示某一类型字符的等价字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#限制字符数量的等价字符"><span class="nav-text"> 限制字符数量的等价字符</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#元字符优先级顺序"><span class="nav-text"> 元字符优先级顺序</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#分组构造"><span class="nav-text"> 分组构造</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#捕获与非捕获"><span class="nav-text"> 捕获与非捕获</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#反向引用"><span class="nav-text"> 反向引用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#带编号的反向引用"><span class="nav-text"> 带编号的反向引用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#命名的反向引用"><span class="nav-text"> 命名的反向引用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#非捕获组"><span class="nav-text"> 非捕获组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#零宽断言"><span class="nav-text"> 零宽断言</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#匹配-exp-前面的位置"><span class="nav-text"> 匹配 exp 前面的位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#匹配-exp-后面的位置"><span class="nav-text"> 匹配 exp 后面的位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#匹配后面跟的不是-exp-的位置"><span class="nav-text"> 匹配后面跟的不是 exp 的位置</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#匹配前面不是-exp-的位置"><span class="nav-text"> 匹配前面不是 exp 的位置</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#贪婪与懒惰"><span class="nav-text"> 贪婪与懒惰</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最实用的正则"><span class="nav-text"> 最实用的正则</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#校验中文"><span class="nav-text"> 校验中文</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验身份证号码"><span class="nav-text"> 校验身份证号码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验有效用户名-密码"><span class="nav-text"> 校验有效用户名、密码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验邮箱"><span class="nav-text"> 校验邮箱</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验-url"><span class="nav-text"> 校验 URL</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验时间"><span class="nav-text"> 校验时间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验日期"><span class="nav-text"> 校验日期</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验中国手机号码"><span class="nav-text"> 校验中国手机号码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验中国固话号码"><span class="nav-text"> 校验中国固话号码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验-ipv4-地址"><span class="nav-text"> 校验 IPv4 地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#校验-ipv6-地址"><span class="nav-text"> 校验 IPv6 地址</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特定字符"><span class="nav-text"> 特定字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特定数字"><span class="nav-text"> 特定数字</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#速查元字符字典"><span class="nav-text"> 速查元字符字典</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#限定符"><span class="nav-text"> 限定符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定位符"><span class="nav-text"> 定位符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#非打印字符"><span class="nav-text"> 非打印字符</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#分组"><span class="nav-text"> 分组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#特殊符号"><span class="nav-text"> 特殊符号</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-text"> 参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <img class="site-author-image" itemprop="image" alt="Zhang Peng"
+    src="/blog/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Zhang Peng</p>
+  <div class="site-description" itemprop="description">Dunwu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/dunwu" title="GitHub &amp;rarr; https:&#x2F;&#x2F;github.com&#x2F;dunwu" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:forbreak@163.com" title="E-Mail &amp;rarr; mailto:forbreak@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/blog/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2015 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-paper-plane"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Peng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">314k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:45</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="//cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1/canvas-nest.min.js"></script>
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/pisces.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+<script src="/blog/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://blog-ajay4qmfci.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  function loadComments() {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: {page: {
+            url: "https://dunwu.github.io/blog/tools/regex/",
+            identifier: "tools/regex/",
+            title: "正则表达式"
+          }
+        }
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://blog-ajay4qmfci.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  }
+    (function() {
+      var offsetTop = document.getElementById('comments').offsetTop - window.innerHeight;
+      if (offsetTop <= 0) {
+        // load directly when there's no a scrollbar
+        window.addEventListener('load', loadComments, false);
+      } else {
+        var disqus_scroll = () => {
+          // offsetTop may changes because of manually resizing browser window or lazy loading images.
+          var offsetTop = document.getElementById('comments').offsetTop - window.innerHeight;
+          var scrollTop = window.scrollY;
+
+          // pre-load comments a bit? (margin or anything else)
+          if (offsetTop - scrollTop < 60) {
+            window.removeEventListener('scroll', disqus_scroll);
+            loadComments();
+          }
+        };
+        window.addEventListener('scroll', disqus_scroll);
+      }
+    })();
+  
+</script>
+
+</body>
+</html>

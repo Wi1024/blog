@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/blog/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/blog/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/blog/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/blog/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/blog/css/main.css">
+
+
+<link rel="stylesheet" href="/blog/lib/font-awesome/css/font-awesome.min.css">
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-minimal.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js"></script>
+
+
+<script id="hexo-configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/blog/',
+    scheme: 'Pisces',
+    version: '7.5.0',
+    exturl: false,
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":true},
+    copycode: {"enable":false,"show_result":false,"style":null},
+    back2top: {"enable":true,"sidebar":false,"scrollpercent":false},
+    bookmark: {"enable":true,"color":"#222","save":"auto"},
+    fancybox: false,
+    mediumzoom: false,
+    lazyload: false,
+    pangu: false,
+    algolia: {
+      appID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    },
+    localsearch: {"enable":true,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},
+    path: 'search.xml',
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    translation: {
+      copy_button: '复制',
+      copy_success: '复制成功',
+      copy_failure: '复制失败'
+    },
+    sidebarPadding: 40
+  };
+</script>
+
+  <meta name="description" content="负载均衡基本原理  📦 本文已归档到：「blog」     一、负载均衡简介 二、负载均衡的分类  功能维度分类 网络通信分类   三、负载均衡算法  轮询 随机 最少连接 源地址哈希 一致性哈希 虚拟哈希槽   四、故障处理机制  心跳检查 失败重试机制   五、术语 参考资料    一、负载均衡简介 负载均衡（Load Balance，简称 LB）是高可用基础架构的关键组件，通常 用于将网">
+<meta property="og:type" content="article">
+<meta property="og:title" content="负载均衡基本原理">
+<meta property="og:url" content="https://dunwu.github.io/blog/theory/load-balance/index.html">
+<meta property="og:site_name" content="Dunwu">
+<meta property="og:description" content="负载均衡基本原理  📦 本文已归档到：「blog」     一、负载均衡简介 二、负载均衡的分类  功能维度分类 网络通信分类   三、负载均衡算法  轮询 随机 最少连接 源地址哈希 一致性哈希 虚拟哈希槽   四、故障处理机制  心跳检查 失败重试机制   五、术语 参考资料    一、负载均衡简介 负载均衡（Load Balance，简称 LB）是高可用基础架构的关键组件，通常 用于将网">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/snap/20200528155252.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/snap/20200125143248.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/Dns%E9%87%8D%E5%AE%9A%E5%90%91.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/Http%E9%87%8D%E5%AE%9A%E5%90%91.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E4%BB%A3%E7%90%86%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/web/nginx/reverse-proxy.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/web/nginx/nginx-load-balance.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/snap/20200125131843.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/snap/20200125131811.png">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E8%BD%AE%E8%AF%A2-01.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E8%BD%AE%E8%AF%A2-02.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E9%9A%8F%E6%9C%BA.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5-01.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5-02.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E5%8A%A0%E6%9D%83%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8BIpHash.jpg">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/partition-consistent-hash.png!zp">
+<meta property="og:image" content="http://dunwu.test.upcdn.net/cs/design/architecture/partition-hash-slot.png">
+<meta property="article:published_time" content="2018-07-05T07:50:00.000Z">
+<meta property="article:modified_time" content="2020-12-27T16:02:48.593Z">
+<meta property="article:author" content="Zhang Peng">
+<meta property="article:tag" content="分布式">
+<meta property="article:tag" content="负载均衡">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://dunwu.test.upcdn.net/snap/20200528155252.png">
+
+<link rel="canonical" href="https://dunwu.github.io/blog/theory/load-balance/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome: false,
+    isPost: true,
+    isPage: false,
+    isArchive: false
+  };
+</script>
+
+  <title>负载均衡基本原理 | Dunwu</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+<link rel="alternate" href="/blog/atom.xml" title="Dunwu" type="application/atom+xml">
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-meta">
+
+    <div>
+      <a href="/blog/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Dunwu</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+        <h1 class="site-subtitle" itemprop="description">大道至简，知易行难</h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+</div>
+
+
+<nav class="site-nav">
+  
+  <ul id="menu" class="menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/blog/" rel="section"><i class="fa fa-fw fa-home"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/blog/about/" rel="section"><i class="fa fa-fw fa-user"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/blog/tags/" rel="section"><i class="fa fa-fw fa-tags"></i>标签<span class="badge">43</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/blog/categories/" rel="section"><i class="fa fa-fw fa-th"></i>分类<span class="badge">12</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/blog/archives/" rel="section"><i class="fa fa-fw fa-archive"></i>归档<span class="badge">47</span></a>
+
+  </li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+
+</nav>
+  <div class="site-search">
+    <div class="popup search-popup">
+    <div class="search-header">
+  <span class="search-icon">
+    <i class="fa fa-search"></i>
+  </span>
+  <div class="search-input-container">
+    <input autocomplete="off" autocorrect="off" autocapitalize="none"
+           placeholder="搜索..." spellcheck="false"
+           type="text" id="search-input">
+  </div>
+  <span class="popup-btn-close">
+    <i class="fa fa-times-circle"></i>
+  </span>
+</div>
+<div id="search-result"></div>
+
+</div>
+<div class="search-pop-overlay"></div>
+
+  </div>
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+  <div class="reading-progress-bar"></div>
+  <a role="button" class="book-mark-link book-mark-link-fixed"></a>
+
+  <a href="https://github.com/dunwu" class="github-corner" title="Follow me on GitHub" aria-label="Follow me on GitHub" rel="noopener" target="_blank"><svg width="80" height="80" viewBox="0 0 250 250" aria-hidden="true"><path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path><path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path><path d="M115.0,115.0 C114.9,115.1 118.7,116.5 119.8,115.4 L133.7,101.6 C136.9,99.2 139.9,98.4 142.2,98.6 C133.8,88.0 127.5,74.4 143.8,58.0 C148.5,53.4 154.0,51.2 159.7,51.0 C160.3,49.4 163.2,43.6 171.4,40.1 C171.4,40.1 176.1,42.5 178.8,56.2 C183.1,58.6 187.2,61.8 190.9,65.4 C194.5,69.0 197.7,73.2 200.1,77.6 C213.8,80.2 216.3,84.9 216.3,84.9 C212.7,93.1 206.9,96.0 205.4,96.6 C205.1,102.4 203.0,107.8 198.3,112.5 C181.9,128.9 168.3,122.5 157.7,114.1 C157.9,116.9 156.7,120.9 152.7,124.9 L141.0,136.5 C139.8,137.7 141.6,141.9 141.8,141.8 Z" fill="currentColor" class="octo-body"></path></svg></a>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content">
+            
+
+  <div class="posts-expand">
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block " lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://dunwu.github.io/blog/blog/theory/load-balance/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/blog/images/avatar.gif">
+      <meta itemprop="name" content="Zhang Peng">
+      <meta itemprop="description" content="Dunwu's Blog">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Dunwu">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          负载均衡基本原理<a href="https://github.com/dunwu/blog/blob/master/source/_posts/theory/load-balance.md" class="post-edit-link" title="编辑" rel="noopener" target="_blank"><i class="fa fa-pencil"></i></a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2018-07-05 15:50:00" itemprop="dateCreated datePublished" datetime="2018-07-05T15:50:00+08:00">2018-07-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-12-28 00:02:48" itemprop="dateModified" datetime="2020-12-28T00:02:48+08:00">2020-12-28</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/blog/categories/%E5%88%86%E5%B8%83%E5%BC%8F/" itemprop="url" rel="index">
+                    <span itemprop="name">分布式</span>
+                  </a>
+                </span>
+            </span>
+
+          
+  
+  <span class="post-meta-item">
+    
+      <span class="post-meta-item-icon">
+        <i class="fa fa-comment-o"></i>
+      </span>
+      <span class="post-meta-item-text">Disqus：</span>
+    
+    <a title="disqus" href="/blog/theory/load-balance/#comments" itemprop="discussionUrl">
+      <span class="post-comments-count disqus-comment-count" data-disqus-identifier="theory/load-balance/" itemprop="commentCount"></span>
+    </a>
+  </span>
+  
+  <br>
+            <span class="post-meta-item" title="本文字数">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-file-word-o"></i>
+              </span>
+                <span class="post-meta-item-text">本文字数：</span>
+              <span>10k</span>
+            </span>
+            <span class="post-meta-item" title="阅读时长">
+              <span class="post-meta-item-icon">
+                <i class="fa fa-clock-o"></i>
+              </span>
+                <span class="post-meta-item-text">阅读时长 &asymp;</span>
+              <span>9 分钟</span>
+            </span>
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="负载均衡基本原理"><a class="markdownIt-Anchor" href="#负载均衡基本原理"></a> 负载均衡基本原理</h1>
+<blockquote>
+<p>📦 本文已归档到：「<a href="https://github.com/dunwu/blog" target="_blank" rel="noopener">blog</a>」</p>
+</blockquote>
+<p><img src="http://dunwu.test.upcdn.net/snap/20200528155252.png" alt="img" /></p>
+<!-- TOC depthFrom:2 depthTo:3 -->
+<ul>
+<li><a href="#%E4%B8%80%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%80%E4%BB%8B">一、负载均衡简介</a></li>
+<li><a href="#%E4%BA%8C%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%9A%84%E5%88%86%E7%B1%BB">二、负载均衡的分类</a>
+<ul>
+<li><a href="#%E5%8A%9F%E8%83%BD%E7%BB%B4%E5%BA%A6%E5%88%86%E7%B1%BB">功能维度分类</a></li>
+<li><a href="#%E7%BD%91%E7%BB%9C%E9%80%9A%E4%BF%A1%E5%88%86%E7%B1%BB">网络通信分类</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95">三、负载均衡算法</a>
+<ul>
+<li><a href="#%E8%BD%AE%E8%AF%A2">轮询</a></li>
+<li><a href="#%E9%9A%8F%E6%9C%BA">随机</a></li>
+<li><a href="#%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5">最少连接</a></li>
+<li><a href="#%E6%BA%90%E5%9C%B0%E5%9D%80%E5%93%88%E5%B8%8C">源地址哈希</a></li>
+<li><a href="#%E4%B8%80%E8%87%B4%E6%80%A7%E5%93%88%E5%B8%8C">一致性哈希</a></li>
+<li><a href="#%E8%99%9A%E6%8B%9F%E5%93%88%E5%B8%8C%E6%A7%BD">虚拟哈希槽</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9B%9B%E6%95%85%E9%9A%9C%E5%A4%84%E7%90%86%E6%9C%BA%E5%88%B6">四、故障处理机制</a>
+<ul>
+<li><a href="#%E5%BF%83%E8%B7%B3%E6%A3%80%E6%9F%A5">心跳检查</a></li>
+<li><a href="#%E5%A4%B1%E8%B4%A5%E9%87%8D%E8%AF%95%E6%9C%BA%E5%88%B6">失败重试机制</a></li>
+</ul>
+</li>
+<li><a href="#%E4%BA%94%E6%9C%AF%E8%AF%AD">五、术语</a></li>
+<li><a href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99">参考资料</a></li>
+</ul>
+<!-- /TOC -->
+<h2 id="一-负载均衡简介"><a class="markdownIt-Anchor" href="#一-负载均衡简介"></a> 一、负载均衡简介</h2>
+<p>负载均衡（Load Balance，简称 LB）是高可用基础架构的关键组件，通常 <strong>用于将网络流量分发到多个服务器上，以提高应用的响应速度和可用性</strong>。</p>
+<p>系统的扩展可分为垂直扩展和水平扩展。</p>
+<ul>
+<li><strong>垂直扩展</strong>，是从单机的角度通过<strong>增加硬件处理能力</strong>，比如 CPU 处理能力，内存容量，磁盘等方面，实现服务器处理能力的提升。这种方式不能满足大型分布式系统（网站），大流量，高并发，海量数据的问题。</li>
+<li><strong>水平扩展</strong>，是通过<strong>添加机器</strong>来满足大型网站服务的处理能力。比如：一台机器不能满足，则增加两台或者多台机器，共同承担访问压力。
+<ul>
+<li>应用集群：将同一应用部署到多台机器上，组成处理集群，接收负载均衡设备分发的请求，进行处理，并返回相应数据。</li>
+<li>负载均衡设备：将用户访问的请求，根据负载均衡算法，分发到集群中的一台处理服务器。（一种把网络请求分散到一个服务器集群中的可用服务器上去的设备）</li>
+</ul>
+</li>
+</ul>
+<p>负载均衡的作用：</p>
+<ul>
+<li><strong>高并发</strong> - 负载均衡通过调整负载，尽力让应用集群中的节点工作量达到均匀，以此提高应用集群的并发处理能力（吞吐量）。</li>
+<li><strong>伸缩性</strong> - 添加或减少服务器数量，然后由负载均衡进行分发控制。这使得应用集群具备伸缩性。</li>
+<li><strong>故障转移</strong> - 负载均衡器可以监控候选服务器，当服务器不可用时，自动跳过，将请求分发给可用的服务器。这使得应用集群具备高可用的特性。</li>
+<li><strong>安全防护</strong> - 有些负载均衡软件或硬件提供了安全性功能，如：黑白名单处理、防火墙，防 DDos 攻击等。</li>
+</ul>
+<h2 id="二-负载均衡的分类"><a class="markdownIt-Anchor" href="#二-负载均衡的分类"></a> 二、负载均衡的分类</h2>
+<h3 id="功能维度分类"><a class="markdownIt-Anchor" href="#功能维度分类"></a> 功能维度分类</h3>
+<p>从功能维度，负载均衡大致可以分为三类：</p>
+<ul>
+<li>DNS 负载均衡</li>
+<li>硬件负载均衡</li>
+<li>软件负载均衡</li>
+</ul>
+<p>（1）DNS 负载均衡</p>
+<p>地理级别的负载均衡。</p>
+<h4 id="硬件负载均衡"><a class="markdownIt-Anchor" href="#硬件负载均衡"></a> 硬件负载均衡</h4>
+<p>硬件负载均衡，一般是在定制处理器上运行的独立负载均衡服务器，<strong>价格昂贵，土豪专属</strong>。</p>
+<p>硬件负载均衡的 <strong>主流产品</strong> 有：<a href="https://f5.com/zh" target="_blank" rel="noopener">F5</a> 和 <a href="https://www.a10networks.com.cn/" target="_blank" rel="noopener">A10</a>。</p>
+<p>硬件负载均衡的 <strong>优点</strong>：</p>
+<ul>
+<li><strong>功能强大</strong> - 支持全局负载均衡并提供较全面的、复杂的负载均衡算法。</li>
+<li><strong>性能强悍</strong> - 硬件负载均衡由于是在专用处理器上运行，因此吞吐量大，可支持单机百万以上的并发。</li>
+<li><strong>安全性高</strong> - 往往具备防火墙，防 DDos 攻击等安全功能。</li>
+</ul>
+<p>硬件负载均衡的 <strong>缺点</strong>：</p>
+<ul>
+<li><strong>成本昂贵</strong> - 购买和维护硬件负载均衡的成本都很高。</li>
+<li><strong>扩展性差</strong> - 当访问量突增时，超过限度不能动态扩容。</li>
+</ul>
+<h4 id="软件负载均衡"><a class="markdownIt-Anchor" href="#软件负载均衡"></a> 软件负载均衡</h4>
+<p>软件负载均衡，<strong>应用最广泛</strong>，无论大公司还是小公司都会使用。</p>
+<p>软件负载均衡从软件层面实现负载均衡，一般可以在任何标准物理设备上运行。</p>
+<p>软件负载均衡的 <strong>主流产品</strong> 有：<a href="https://www.nginx.com/" target="_blank" rel="noopener">Nginx</a>、<a href="http://www.haproxy.org/" target="_blank" rel="noopener">HAProxy</a>、<a href="https://github.com/alibaba/LVS" target="_blank" rel="noopener">LVS</a>。</p>
+<ul>
+<li><a href="https://github.com/alibaba/LVS" target="_blank" rel="noopener">LVS</a> 可以作为四层负载均衡器。其负载均衡的性能要优于 Nginx。</li>
+<li><a href="http://www.haproxy.org/" target="_blank" rel="noopener">HAProxy</a> 可以作为 HTTP 和 TCP 负载均衡器。</li>
+<li><a href="https://www.nginx.com/" target="_blank" rel="noopener">Nginx</a>、<a href="http://www.haproxy.org/" target="_blank" rel="noopener">HAProxy</a> 可以作为四层或七层负载均衡器。</li>
+</ul>
+<p>软件负载均衡的 <strong>优点</strong>：</p>
+<ul>
+<li><strong>扩展性好</strong> - 适应动态变化，可以通过添加软件负载均衡实例，动态扩展到超出初始容量的能力。</li>
+<li><strong>成本低廉</strong> - 软件负载均衡可以在任何标准物理设备上运行，降低了购买和运维的成本。</li>
+</ul>
+<p>软件负载均衡的 <strong>缺点</strong>：</p>
+<ul>
+<li><strong>性能略差</strong> - 相比于硬件负载均衡，软件负载均衡的性能要略低一些。</li>
+</ul>
+<h3 id="网络通信分类"><a class="markdownIt-Anchor" href="#网络通信分类"></a> 网络通信分类</h3>
+<p>软件负载负载均衡从通信层面来看，又可以分为四层和七层负载均衡。</p>
+<ul>
+<li>七层负载均衡 - 就是可以根据访问用户的 HTTP 请求头、URL 信息将请求转发到特定的主机。
+<ul>
+<li>DNS 重定向</li>
+<li>HTTP 重定向</li>
+<li>反向代理</li>
+</ul>
+</li>
+<li>四层负载均衡 - 基于 IP 地址和端口进行请求的转发。
+<ul>
+<li>修改 IP 地址</li>
+<li>修改 MAC 地址</li>
+</ul>
+</li>
+</ul>
+<h4 id="七层负载均衡"><a class="markdownIt-Anchor" href="#七层负载均衡"></a> 七层负载均衡</h4>
+<h5 id="dns-负载均衡"><a class="markdownIt-Anchor" href="#dns-负载均衡"></a> DNS 负载均衡</h5>
+<p>DNS 负载均衡一般用于互联网公司，复杂的业务系统不适合使用。大型网站一般使用 DNS 负载均衡作为 <strong>第一级负载均衡手段</strong>，然后在内部使用其它方式做第二级负载均衡。DNS 负载均衡属于七层负载均衡。</p>
+<p>DNS 即 <strong>域名解析服务</strong>，是 OSI 第七层网络协议。DNS 被设计为一个树形结构的分布式应用，自上而下依次为：根域名服务器，一级域名服务器，二级域名服务器，… ，本地域名服务器。显然，如果所有数据都存储在根域名服务器，那么 DNS 查询的负载和开销会非常庞大。</p>
+<p><img src="http://dunwu.test.upcdn.net/snap/20200125143248.png" alt="img" /></p>
+<p>因此，DNS 查询相对于 DNS 层级结构，是一个逆向的递归流程，DNS 客户端依次请求本地 DNS 服务器，上一级 DNS 服务器，上上一级 DNS 服务器，… ，根 DNS 服务器（又叫权威 DNS 服务器），一旦命中，立即返回。为了减少查询次数，每一级 DNS 服务器都会设置 DNS 查询缓存。</p>
+<p>DNS 负载均衡的工作原理就是：<strong>基于 DNS 查询缓存，按照负载情况返回不同服务器的 IP 地址</strong>。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/Dns%E9%87%8D%E5%AE%9A%E5%90%91.png" alt="img" /></p>
+<p>DNS 重定向的 <strong>优点</strong>：</p>
+<ul>
+<li><strong>使用简单</strong> - 负载均衡工作，交给 DNS 服务器处理，省掉了负载均衡服务器维护的麻烦</li>
+<li><strong>提高性能</strong> - 可以支持基于地址的域名解析，解析成距离用户最近的服务器地址（类似 CDN 的原理），可以加快访问速度，改善性能；</li>
+</ul>
+<p>DNS 重定向的 <strong>缺点</strong>：</p>
+<ul>
+<li><strong>可用性差</strong> - DNS 解析是多级解析，新增/修改 DNS 后，解析时间较长；解析过程中，用户访问网站将失败；</li>
+<li><strong>扩展性低</strong> - DNS 负载均衡的控制权在域名商那里，无法对其做更多的改善和扩展；</li>
+<li><strong>维护性差</strong> - 也不能反映服务器的当前运行状态；支持的算法少；不能区分服务器的差异（不能根据系统与服务的状态来判断负载）</li>
+</ul>
+<h5 id="http-负载均衡"><a class="markdownIt-Anchor" href="#http-负载均衡"></a> HTTP 负载均衡</h5>
+<p><strong>HTTP 负载均衡是基于 HTTP 重定向实现的</strong>。HTTP 负载均衡属于七层负载均衡。</p>
+<p>HTTP 重定向原理是：<strong>根据用户的 HTTP 请求计算出一个真实的服务器地址，将该服务器地址写入 HTTP 重定向响应中，返回给浏览器，由浏览器重新进行访问</strong>。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/Http%E9%87%8D%E5%AE%9A%E5%90%91.png" alt="img" /></p>
+<p>HTTP 重定向的 <strong>优点</strong>：<strong>方案简单</strong>。</p>
+<p>HTTP 重定向的 <strong>缺点</strong>：</p>
+<ul>
+<li><strong>性能较差</strong> - 每次访问需要两次请求服务器，增加了访问的延迟。</li>
+<li><strong>降低搜索排名</strong> - 使用重定向后，搜索引擎会视为 SEO 作弊。</li>
+<li>如果负载均衡器宕机，就无法访问该站点。</li>
+</ul>
+<p>由于其缺点比较明显，所以这种负载均衡策略实际应用较少。</p>
+<h5 id="反向代理"><a class="markdownIt-Anchor" href="#反向代理"></a> 反向代理</h5>
+<p>反向代理（Reverse Proxy）方式是指以 <strong>代理服务器</strong> 来接受网络请求，然后 <strong>将请求转发给内网中的服务器</strong>，并将从内网中的服务器上得到的结果返回给网络请求的客户端。反向代理负载均衡属于七层负载均衡。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E4%BB%A3%E7%90%86%E8%87%AA%E5%8A%A8%E9%85%8D%E7%BD%AE.jpg" alt="img" /></p>
+<p>反向代理服务的主流产品：<strong>Nginx</strong>、<strong>Apache</strong>。</p>
+<p>正向代理与反向代理有什么区别？</p>
+<ul>
+<li>正向代理：发生在 <strong>客户端</strong>，是由用户主动发起的。翻墙软件就是典型的正向代理，客户端通过主动访问代理服务器，让代理服务器获得需要的外网数据，然后转发回客户端。</li>
+<li>反向代理：发生在 <strong>服务端</strong>，用户不知道代理的存在。</li>
+</ul>
+<p><img src="http://dunwu.test.upcdn.net/cs/web/nginx/reverse-proxy.png" alt="img" /></p>
+<p>Nginx 可以实现简单的负载均衡功能：</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/web/nginx/nginx-load-balance.png" alt="img" /></p>
+<p>反向代理的 <strong>优点</strong>：</p>
+<ul>
+<li><strong>多种负载均衡算法</strong> - 支持多种负载均衡算法，以应对不同的场景需求。</li>
+<li><strong>可以监控服务器</strong> - 基于 HTTP 协议，可以监控转发服务器的状态，如：系统负载、响应时间、是否可用、连接数、流量等，从而根据这些数据调整负载均衡的策略。</li>
+</ul>
+<p>反向代理的 <strong>缺点</strong>：</p>
+<ul>
+<li>
+<p><strong>额外的转发开销</strong> - 反向代理的转发操作本身是有性能开销的，可能会包括，创建连接，等待连接响应，分析响应结果等操作。</p>
+</li>
+<li>
+<p><strong>增加系统复杂度</strong> - 反向代理常用于做分布式应用的水平扩展，但反向代理服务存在以下问题，为了解决以下问题会给系统整体增加额外的复杂度和运维成本：</p>
+<ul>
+<li>反向代理服务如果宕机，就无法访问站点，所以需要有 <strong>高可用</strong> 方案，常见的方案有：主备模式（一主一备）、双主模式（互为主备）。</li>
+<li>反向代理服务自身也存在性能瓶颈，随着需要转发的请求量不断攀升，需要有 <strong>可扩展</strong> 方案。</li>
+</ul>
+</li>
+</ul>
+<h5 id="rpc-负载均衡"><a class="markdownIt-Anchor" href="#rpc-负载均衡"></a> RPC 负载均衡</h5>
+<p>RPC 负载均衡其原理是：服务提供方向服务注册中心注册服务，服务消费方向注册中心请求可用的服务提供方。当服务消费方获取到可用服务方信息后，消费方自身根据一定的负载均衡算法，选择向哪个服务方发送请求。</p>
+<p>常见的应用技术有：Dubbo（支持负载均衡的 RPC 框架）、Spring Cloud Ribbon、Spring Cloud Feign 等。</p>
+<h4 id="四层负载均衡"><a class="markdownIt-Anchor" href="#四层负载均衡"></a> 四层负载均衡</h4>
+<h5 id="网络地址转发"><a class="markdownIt-Anchor" href="#网络地址转发"></a> 网络地址转发</h5>
+<p><strong><code>网络地址转发（Network Address Translation，简称 NAT）</code></strong> 是指 <strong>通过修改目的 IP 地址实现负载均衡</strong>。NAT 属于四层负载均衡。</p>
+<p>NAT 工作原理：</p>
+<ul>
+<li>用户请求数据包到达 LB 后，LB 在操作系统内核进程获取网络数据包。</li>
+<li>LB 器根据负载均衡算法得到 RIP，并将请求目的地址修改为 RIP，不需要经过用户进程处理。然后，将请求发送给 RS。</li>
+<li>RS 处理完成请求后，将响应数据包返回到 LB。</li>
+<li>LB 再将数据包源地址修改为自身的 IP 地址，发送给用户浏览器。</li>
+</ul>
+<p><img src="http://dunwu.test.upcdn.net/snap/20200125131843.png" alt="img" /></p>
+<p>NAT 的 <strong>优点</strong>：在内核进程完成数据分发，比在应用层分发 <strong>性能更好</strong>；</p>
+<p>NAT 的 <strong>缺点</strong>：所有请求响应都需要经过负载均衡服务器，集群 <strong>最大吞吐量受限于负载均衡服务器网卡带宽</strong>；</p>
+<p>网络层负载均衡主流的产品是：</p>
+<ul>
+<li><a href="https://github.com/alibaba/LVS" target="_blank" rel="noopener">LVS</a> 的 NAT 模式。</li>
+<li>HAProxy 的 TCP 四层负载均衡。</li>
+</ul>
+<p>在 NAT 模式下，HAProxy 使用比 LVS 更方便。</p>
+<h5 id="隧道技术"><a class="markdownIt-Anchor" href="#隧道技术"></a> 隧道技术</h5>
+<p><strong><code>隧道技术（ IP Tunneling，简称 TUN）</code></strong> 是指：采用 NAT 模式时，由于请求和响应的报文必须通过负载均衡器重写地址，当客户请求越来越多时，负载均衡器处理能力将成为瓶颈。为了解决这个问题，负载均衡器把请求的报文<strong>通过 IP 隧道转发到真实的服务器</strong>。真实的服务器将响应处理后的数据直接返回给客户端。这样负载均衡器就只需处理请求报文。</p>
+<p>TUN 工作原理：</p>
+<ul>
+<li>客户请求数据包，根据目标地址 VIP 发送到 LB 上。</li>
+<li>LB 接收到客户请求包，根据负载均衡算法计算出分发的 RS。</li>
+<li>然后，进行 IP Tunnel 封装。即在原有的请求包上封装 IP Tunnel 的包头。然后发送出去。</li>
+<li>RS 根据 IP Tunnel 包头信息（此时就又一种逻辑上的隐形隧道，只有 LB 和 RS 之间懂）收到请求包，然后解开 IP Tunnel 包头信息，得到客户的请求包并进行响应处理。</li>
+<li>响应处理完毕之后，RS 使用自己的出公网的线路，将这个响应数据包发送给客户端。源 IP 地址还是 VIP 地址。</li>
+</ul>
+<h5 id="直接路由"><a class="markdownIt-Anchor" href="#直接路由"></a> 直接路由</h5>
+<p><strong><code>直接路由（Direct Routing，简称 DR）</code></strong> 是指 <strong>通过修改目的 MAC 地址实现负载均衡</strong>。DR 属于四层负载均衡。</p>
+<p>DR 工作原理：</p>
+<ul>
+<li>客户请求数据包到达 LB 后，LB 根据调度算法选出一台 RS，将数据帧的 MAC 地址改写为 RS 的 MAC 地址，然后发送出去。</li>
+<li>交换机会根据 MAC 地址将数据封包发送给 RS，RS 将处理完的结果直接返回给客户端。</li>
+</ul>
+<p><img src="http://dunwu.test.upcdn.net/snap/20200125131811.png" alt="img" /></p>
+<p>数据链路层负载均衡主流的产品是：<a href="https://github.com/alibaba/LVS" target="_blank" rel="noopener">LVS</a> 的 DR 模式。</p>
+<p>DR 的 <strong>优点</strong>：</p>
+<ul>
+<li>不需要负载均衡服务器进行地址的转换。</li>
+<li>数据响应时不需要经过负载均衡服务器，性能高于 NAT。</li>
+</ul>
+<p>DR 的 <strong>缺点</strong>：</p>
+<ul>
+<li>对网卡带宽要求较高。</li>
+<li>提供服务的端口必须一致。VIP 的端口对外端口为 80，但后端服务的真实端口为 8080，通过 LVS 的 DR 模式无法实现。</li>
+<li>LVS 和真实服务器必须在同一网络。</li>
+</ul>
+<h2 id="三-负载均衡算法"><a class="markdownIt-Anchor" href="#三-负载均衡算法"></a> 三、负载均衡算法</h2>
+<p>负载均衡算法是负载均衡服务核心中的核心。负载均衡产品多种多样，但是各种负载均衡算法原理是共性的。</p>
+<p>负载均衡算法有很多种，分别适用于不同的应用场景，本文仅介绍最为常见的负载均衡算法的特性及原理：轮询、随机、最少连接、一致性 Hash。</p>
+<h3 id="轮询"><a class="markdownIt-Anchor" href="#轮询"></a> 轮询</h3>
+<p><strong><code>轮询（Round Robin）</code></strong> 算法 <strong>将请求依次分发到候选服务器</strong>。</p>
+<ul>
+<li>特点：<strong>请求完全均匀分发</strong>，即服务器请求被完全均匀的分发到集群的各节点上。</li>
+<li>场景：<strong>适合服务器硬件相同的场景</strong>。</li>
+<li>该算法比较适合每个服务器的性能差不多的场景，如果有性能存在差异的情况下，那么性能较差的服务器可能无法承担过大的负载（下图的 Server 2）。</li>
+</ul>
+<p>下图中，一共有 6 个客户端产生了 6 个请求，这 6 个请求按 (1, 2, 3, 4, 5, 6) 的顺序发送。最后，(1, 3, 5) 的请求会被发送到服务器 1，(2, 4, 6) 的请求会被发送到服务器 2。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E8%BD%AE%E8%AF%A2-01.jpg" alt="img" /></p>
+<p>该算法比较适合每个服务器的性能差不多的场景，如果有性能存在差异的情况下，那么性能较差的服务器可能无法承担过大的负载（下图的 Server 2）。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E8%BD%AE%E8%AF%A2-02.jpg" alt="img" /></p>
+<p>节点存储结构：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> List&lt;V&gt; nodeList = Collections.emptyList();</span><br></pre></td></tr></table></figure>
+<p>算法实现示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> V <span class="title">select</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (CollectionUtil.isEmpty(<span class="keyword">this</span>.nodeList)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> size = <span class="keyword">this</span>.nodeList.size();</span><br><span class="line">    offset.compareAndSet(size, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> nodeList.get(offset.getAndIncrement());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="加权轮询"><a class="markdownIt-Anchor" href="#加权轮询"></a> 加权轮询</h4>
+<p><strong><code>加权轮询（Weighted Round Robbin）</code></strong> 算法在轮询算法的基础上，增加了权重属性。性能高、处理速度快的机器应该设置更高的权重，使得分发时优先将请求分发到权重较高的服务器上。</p>
+<ul>
+<li>优点：根据权重，调节转发服务器的请求数目。</li>
+<li>缺点：比轮询算法复杂。</li>
+</ul>
+<p>加权轮询是在轮询的基础上，根据服务器的性能差异，为服务器赋予一定的权值。例如下图中，服务器 1 被赋予的权值为 5，服务器 2 被赋予的权值为 1，那么 (1, 2, 3, 4, 5) 请求会被发送到服务器 1，(6) 请求会被发送到服务器 2。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E5%8A%A0%E6%9D%83%E8%BD%AE%E8%AF%A2.jpg" alt="img" /></p>
+<p>节点存储结构：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// key 存储实际节点内容，value 存储节点的权重</span></span><br><span class="line"><span class="keyword">private</span> Map&lt;V, Integer&gt; nodeMap = <span class="keyword">new</span> LinkedHashMap&lt;&gt;();</span><br></pre></td></tr></table></figure>
+<p>算法实现示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">select</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (MapUtil.isEmpty(nodeMap)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> totalWeight = nodeMap.values().stream().mapToInt(a -&gt; a).sum();</span><br><span class="line">    <span class="keyword">int</span> number = offset.getAndIncrement() % totalWeight;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;V, Integer&gt; item : nodeMap.entrySet()) &#123;</span><br><span class="line">        <span class="keyword">if</span> (item.getValue() &gt; number) &#123;</span><br><span class="line">            <span class="keyword">return</span> item.getKey();</span><br><span class="line">        &#125;</span><br><span class="line">        number -= item.getValue();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="随机"><a class="markdownIt-Anchor" href="#随机"></a> 随机</h3>
+<p><strong><code>随机（Random）</code></strong> 算法 <strong>将请求随机分发到候选服务器</strong>。</p>
+<ul>
+<li>特点：调用量较小的时候，可能负载并不均匀，<strong>调用量越大，负载越均衡</strong>。</li>
+<li>场景：<strong>适合服务器硬件相同的场景</strong>。</li>
+</ul>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E9%9A%8F%E6%9C%BA.jpg" alt="img" /></p>
+<p>节点存储结构：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">List&lt;V&gt; nodeList = Collections.emptyList();</span><br></pre></td></tr></table></figure>
+<p>算法实现示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">select</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (CollectionUtil.isEmpty(<span class="keyword">this</span>.nodeList)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> offset = random.nextInt(nodeList.size());</span><br><span class="line">    <span class="keyword">return</span> nodeList.get(offset);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="加权随机"><a class="markdownIt-Anchor" href="#加权随机"></a> 加权随机</h4>
+<p><strong><code>加权随机（Weighted Random）</code></strong> 算法在随机算法的基础上，按照概率调整权重，进行负载分配。</p>
+<p>节点存储结构：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">// key 存储实际节点内容，value 存储节点的权重</span></span><br><span class="line">Map&lt;V, Integer&gt; nodeMap = <span class="keyword">new</span> LinkedHashMap&lt;&gt;();</span><br></pre></td></tr></table></figure>
+<p>算法实现示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">select</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (MapUtil.isEmpty(keyWeightMap)) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    List&lt;V&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (Map.Entry&lt;V, Integer&gt; item : keyWeightMap.entrySet()) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; item.getValue(); i++) &#123;</span><br><span class="line">            list.add(item.getKey());</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">int</span> totalWeight = keyWeightMap.values().stream().mapToInt(a -&gt; a).sum();</span><br><span class="line">    <span class="keyword">int</span> number = random.nextInt(totalWeight);</span><br><span class="line">    <span class="keyword">return</span> list.get(number);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="最少连接"><a class="markdownIt-Anchor" href="#最少连接"></a> 最少连接</h3>
+<p><strong><code>最少连接（Least Connection）</code></strong> 算法 <strong>将请求分发到连接数/请求数最少的候选服务器</strong>（目前处理请求最少的服务器）。</p>
+<ul>
+<li>特点：根据候选服务器当前的请求连接数，动态分配。</li>
+<li>场景：<strong>适用于对系统负载较为敏感或请求连接时长相差较大的场景</strong>。</li>
+</ul>
+<p>由于每个请求的连接时长不一样，如果采用简单的轮循或随机算法，都可能出现<strong>某些服务器当前连接数过大，而另一些服务器的连接过小</strong>的情况，这就造成了负载并非真正均衡。虽然，轮询或算法都可以通过加权重属性的方式进行负载调整，但加权方式难以应对动态变化。</p>
+<p>例如下图中，(1, 3, 5) 请求会被发送到服务器 1，但是 (1, 3) 很快就断开连接，此时只有 (5) 请求连接服务器 1；(2, 4, 6) 请求被发送到服务器 2，只有 (2) 的连接断开。该系统继续运行时，服务器 2 会承担过大的负载。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5-01.jpg" alt="img" /></p>
+<p>最少连接算法会记录当前时刻，每个候选节点正在处理的连接数，然后选择连接数最小的节点。该策略能够动态、实时地反应服务器的当前状况，较为合理地将负责分配均匀，适用于对当前系统负载较为敏感的场景。</p>
+<p>例如下图中，服务器 1 当前连接数最小，那么新到来的请求 6 就会被发送到服务器 1 上。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5-02.jpg" alt="img" /></p>
+<h4 id="加权最少连接"><a class="markdownIt-Anchor" href="#加权最少连接"></a> 加权最少连接</h4>
+<p>加权最少连接（Weighted Least Connection）在最少连接的基础上，根据服务器的性能为每台服务器分配权重，再根据权重计算出每台服务器能处理的连接数。</p>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8B%E5%8A%A0%E6%9D%83%E6%9C%80%E5%B0%91%E8%BF%9E%E6%8E%A5.jpg" alt="img" /></p>
+<h3 id="源地址哈希"><a class="markdownIt-Anchor" href="#源地址哈希"></a> 源地址哈希</h3>
+<p>**<code>源地址哈希（IP Hash）</code>**算法 <strong>根据请求源 IP，通过哈希计算得到一个数值，用该数值在候选服务器列表的进行取模运算，得到的结果便是选中的服务器</strong>。</p>
+<ul>
+<li>特点：保证特定用户总是请求到相同的服务器，若服务器宕机，会话会丢失。</li>
+<li>场景：会话粘滞。</li>
+</ul>
+<p><img src="http://dunwu.test.upcdn.net/cs/design/architecture/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1%E7%AE%97%E6%B3%95%E4%B9%8BIpHash.jpg" alt="img" /></p>
+<p>算法示例：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">select</span><span class="params">(<span class="keyword">final</span> String key)</span> </span>&#123;</span><br><span class="line">    List&lt;V&gt; list = <span class="keyword">new</span> ArrayList&lt;&gt;(nodes);</span><br><span class="line">    <span class="keyword">int</span> hashCode = key.hashCode();</span><br><span class="line">    <span class="keyword">int</span> idx = hashCode % list.size();</span><br><span class="line">    <span class="keyword">return</span> list.get(Math.abs(idx));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="一致性哈希"><a class="markdownIt-Anchor" href="#一致性哈希"></a> 一致性哈希</h3>
+<p>一致性哈希（Consistent Hash）算法的目标是：<strong>相同的请求尽可能落到同一个服务器上</strong>。</p>
+<p><strong>一致性哈希</strong> 可以很好的解决 <strong>稳定性问题</strong>，可以将所有的 <strong>存储节点</strong> 排列在 <strong>首尾相接</strong> 的 <code>Hash</code> 环上，每个 <code>key</code> 在计算 <code>Hash</code> 后会 <strong>顺时针</strong> 找到 <strong>临接</strong> 的 <strong>存储节点</strong> 存放。而当有节点 <strong>加入</strong> 或 <strong>退出</strong> 时，仅影响该节点在 <code>Hash</code> 环上 <strong>顺时针相邻</strong> 的 <strong>后续节点</strong>。</p>
+<div align="center">
+<img src="http://dunwu.test.upcdn.net/cs/design/architecture/partition-consistent-hash.png!zp" />
+</div>
+<ul>
+<li>相同的请求是指：一般在使用一致性哈希时，需要指定一个 key 用于 hash 计算，可能是：
+<ul>
+<li>用户 ID</li>
+<li>请求方 IP</li>
+<li>请求服务名称，参数列表构成的串</li>
+</ul>
+</li>
+<li>尽可能是指：服务器可能发生上下线，少数服务器的变化不应该影响大多数的请求。</li>
+</ul>
+<p>当某台候选服务器宕机时，原本发往该服务器的请求，会基于虚拟节点，平摊到其它候选服务器，不会引起剧烈变动。</p>
+<ul>
+<li><strong>优点</strong></li>
+</ul>
+<p><strong>加入</strong> 和 <strong>删除</strong> 节点只影响 <strong>哈希环</strong> 中 <strong>顺时针方向</strong> 的 <strong>相邻的节点</strong>，对其他节点无影响。</p>
+<ul>
+<li><strong>缺点</strong></li>
+</ul>
+<p><strong>加减节点</strong> 会造成 <strong>哈希环</strong> 中部分数据 <strong>无法命中</strong>。当使用 <strong>少量节点</strong> 时，<strong>节点变化</strong> 将大范围影响 <strong>哈希环</strong> 中 <strong>数据映射</strong>，不适合 <strong>少量数据节点</strong> 的分布式方案。<strong>普通</strong> 的 <strong>一致性哈希分区</strong> 在增减节点时需要 <strong>增加一倍</strong> 或 <strong>减去一半</strong> 节点才能保证 <strong>数据</strong> 和 <strong>负载的均衡</strong>。</p>
+<blockquote>
+<p><strong>注意</strong>：因为 <strong>一致性哈希分区</strong> 的这些缺点，一些分布式系统采用 <strong>虚拟槽</strong> 对 <strong>一致性哈希</strong> 进行改进，比如 <code>Dynamo</code> 系统。</p>
+</blockquote>
+<p>一致性哈希算法示例：</p>
+<ul>
+<li>构建虚拟 Hash 环</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> <span class="keyword">int</span> VIRTUAL_NODE_SIZE = <span class="number">1000</span>;</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> <span class="keyword">static</span> String VIRTUAL_NODE_SUFFIX = <span class="string">"&amp;&amp;"</span>;</span><br><span class="line"><span class="keyword">private</span> Set&lt;V&gt; nodes = <span class="keyword">new</span> LinkedHashSet&lt;&gt;(collection);</span><br><span class="line"><span class="keyword">private</span> TreeMap&lt;Integer, V&gt; hashRing = buildConsistentHashRing(<span class="keyword">this</span>.nodes);</span><br><span class="line"></span><br><span class="line"><span class="function">TreeMap&lt;Integer, V&gt; <span class="title">buildConsistentHashRing</span><span class="params">(Set&lt;V&gt; nodes)</span> </span>&#123;</span><br><span class="line">    TreeMap&lt;Integer, V&gt; hashRing = <span class="keyword">new</span> TreeMap&lt;&gt;();</span><br><span class="line">    <span class="keyword">for</span> (V node : nodes) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; VIRTUAL_NODE_SIZE; i++) &#123;</span><br><span class="line">            <span class="comment">// 新增虚拟节点的方式如果有影响，也可以抽象出一个由物理节点扩展虚拟节点的类</span></span><br><span class="line">            hashRing.put(hashStrategy.hashCode(node + VIRTUAL_NODE_SUFFIX + i), node);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> hashRing;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>核心算法</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> V <span class="title">select</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> hashCode = hashStrategy.hashCode(key);</span><br><span class="line">    <span class="comment">// 向右找到第一个 key</span></span><br><span class="line">    Map.Entry&lt;Integer, V&gt; entry = hashRing.ceilingEntry(hashCode);</span><br><span class="line">    <span class="keyword">if</span> (entry == <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="comment">// 想象成一个环，超过尾部则取第一个 key</span></span><br><span class="line">        entry = hashRing.firstEntry();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> entry.getValue();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="虚拟哈希槽"><a class="markdownIt-Anchor" href="#虚拟哈希槽"></a> 虚拟哈希槽</h3>
+<p>虚拟哈希槽是对一致性 Hash 的改进。</p>
+<p><strong>虚拟槽分区</strong> 巧妙地使用了 <strong>哈希空间</strong>，使用 <strong>分散度良好</strong> 的 <strong>哈希函数</strong> 把所有数据 <strong>映射</strong> 到一个 <strong>固定范围</strong> 的 <strong>整数集合</strong> 中，整数定义为 <strong>槽</strong>（<code>slot</code>）。这个范围一般 <strong>远远大于</strong> 节点数，比如 <code>Redis Cluster</code> 槽范围是 <code>0 ~ 16383</code>。<strong>槽</strong> 是集群内 <strong>数据管理</strong> 和 <strong>迁移</strong> 的 <strong>基本单位</strong>。采用 <strong>大范围槽</strong> 的主要目的是为了方便 <strong>数据拆分</strong> 和 <strong>集群扩展</strong>。每个节点会负责 <strong>一定数量的槽</strong>，如图所示：</p>
+<div align="center">
+<img src="http://dunwu.test.upcdn.net/cs/design/architecture/partition-hash-slot.png" />
+</div>
+<p>当前集群有 <code>3</code> 个节点，每个节点平均大约负责 <code>5460</code> 个 <strong>槽</strong>。由于采用 <strong>高质量</strong> 的 <strong>哈希算法</strong>，每个槽所映射的数据通常比较 <strong>均匀</strong>，将数据平均划分到 <code>3</code> 个节点进行 <strong>数据分区</strong>。<code>Redis Cluster</code> 就是采用 <strong>虚拟槽分区</strong>。</p>
+<p>集群中的每个节点负责一部分哈希槽，比如集群中有３个节点，则：</p>
+<ul>
+<li>节点Ａ存储的哈希槽范围是：0 – 5460</li>
+<li>节点Ｂ存储的哈希槽范围是：5461 – 10922</li>
+<li>节点Ｃ存储的哈希槽范围是：10923 – 16383</li>
+</ul>
+<p>这种结构很容易 <strong>添加</strong> 或者 <strong>删除</strong> 节点。如果 <strong>增加</strong> 一个节点 <code>4</code>，就需要从节点 <code>1 ~ 3</code> 获得部分 <strong>槽</strong> 分配到节点 <code>4</code> 上。如果想 <strong>移除</strong> 节点 <code>1</code>，需要将节点 <code>1</code> 中的 <strong>槽</strong> 移到节点 <code>2 ~ 3</code> 上，然后将 <strong>没有任何槽</strong> 的节点 <code>1</code> 从集群中 <strong>移除</strong> 即可。</p>
+<blockquote>
+<p>由于从一个节点将 <strong>哈希槽</strong> 移动到另一个节点并不会 <strong>停止服务</strong>，所以无论 <strong>添加删除</strong> 或者 <strong>改变</strong> 某个节点的 <strong>哈希槽的数量</strong> 都不会造成 <strong>集群不可用</strong> 的状态.</p>
+</blockquote>
+<h2 id="四-故障处理机制"><a class="markdownIt-Anchor" href="#四-故障处理机制"></a> 四、故障处理机制</h2>
+<p>负载均衡产品需要考虑故障问题。</p>
+<h3 id="心跳检查"><a class="markdownIt-Anchor" href="#心跳检查"></a> 心跳检查</h3>
+<p>负载均衡类产品，一般都有健康检查机制，来检测集群中的节点状态。</p>
+<p>常见的手段就是：心跳检查。</p>
+<p>心跳检查原理是：服务方向负载均衡服务定期发送心跳消息以续约，负载均衡服务如果在一定时间内迟迟得不到某个服务方的心跳，则判定其故障，将其从有效服务列表移除。</p>
+<p>适用场景：负载均衡是在服务器进行。</p>
+<h3 id="失败重试机制"><a class="markdownIt-Anchor" href="#失败重试机制"></a> 失败重试机制</h3>
+<p>请求方向服务方发送请求，一般都会设置<strong>超时时间</strong>和<strong>最大失败重试次数</strong>。</p>
+<p>当前请求时间大于超时时间，会重新请求，一旦超过最大失败重试次数，可判定当前请求的服务故障。此时，可以根据失败处理策略（根据业务需要，灵活定制），选择放弃请求，发出告警；或使用负载均衡算法再选出一个新的服务方。</p>
+<p>适用场景：负载均衡是在客户端进行。</p>
+<h2 id="五-术语"><a class="markdownIt-Anchor" href="#五-术语"></a> 五、术语</h2>
+<ul>
+<li>LB - Load Balancer，即负载均衡器。</li>
+<li>RS - Real Server，即真实服务器。</li>
+<li>RIP - Real Server IP，即真实服务器 IP。</li>
+<li>VIP - Virtual IP，即虚拟 IP，是外部直接面向用户请求，作为用户请求的目标 IP 地址。</li>
+<li>DIP - Director Server IP，即直连服务器 IP，主要用于和内部主机通信的 IP 地址。</li>
+<li>CIP - Client IP，即客户端 IP。</li>
+<li>NAT - Network Address Translation，即网络地址转发。</li>
+<li>TUN - IP Tunneling，即 IP 隧道技术。</li>
+<li>DR - Direct Routing，即直接路由。</li>
+</ul>
+<h2 id="参考资料"><a class="markdownIt-Anchor" href="#参考资料"></a> 参考资料</h2>
+<ul>
+<li><a href="https://item.jd.com/11322972.html" target="_blank" rel="noopener">《大型网站技术架构：核心原理与案例分析》</a></li>
+<li><a href="https://www.cnblogs.com/itfly8/p/5043435.html" target="_blank" rel="noopener">大型网站架构系列：负载均衡详解（1）</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/32841479" target="_blank" rel="noopener">什么是负载均衡</a></li>
+<li><a href="https://avinetworks.com/what-is-load-balancing/" target="_blank" rel="noopener">What Is Load Balancing</a></li>
+<li><a href="https://segmentfault.com/a/1190000004492447" target="_blank" rel="noopener">负载均衡算法及手段</a></li>
+<li><a href="https://dubbo.apache.org/zh-cn/docs/source_code_guide/loadbalance.html" target="_blank" rel="noopener">Dubbo 负载均衡实现</a></li>
+<li><a href="https://segmentfault.com/a/1190000002578457" target="_blank" rel="noopener">利用 dns 解析来实现网站的负载均衡</a></li>
+<li><a href="https://zhuanlan.zhihu.com/p/31777732" target="_blank" rel="noopener">原理上搞懂 LVS 的 DR 和 NAT 模式的缺陷，不看小心踩坑</a></li>
+<li><a href="https://www.cnblogs.com/liwei0526vip/p/6370103.html" target="_blank" rel="noopener">使用 LVS 实现负载均衡原理及安装配置详解</a></li>
+</ul>
+
+    </div>
+
+    
+    
+    
+        
+
+<div>
+<ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者： </strong>Zhang Peng
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="https://dunwu.github.io/blog/theory/load-balance/" title="负载均衡基本原理">https://dunwu.github.io/blog/theory/load-balance/</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" rel="noopener" target="_blank"><i class="fa fa-fw fa-creative-commons"></i>BY-NC-SA</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+</div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/blog/tags/%E5%88%86%E5%B8%83%E5%BC%8F/" rel="tag"># 分布式</a>
+              <a href="/blog/tags/%E8%B4%9F%E8%BD%BD%E5%9D%87%E8%A1%A1/" rel="tag"># 负载均衡</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-next post-nav-item">
+                <a href="/blog/design/solution/miao-sha-system/" rel="next" title="秒杀系统设计">
+                  <i class="fa fa-chevron-left"></i> 秒杀系统设计
+                </a>
+            </div>
+
+            <span class="post-nav-divider"></span>
+
+            <div class="post-nav-prev post-nav-item">
+                <a href="/blog/theory/system-theory-interview/" rel="prev" title="系统原理面试题">
+                  系统原理面试题 <i class="fa fa-chevron-right"></i>
+                </a>
+            </div>
+          </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+  </div>
+
+
+          </div>
+          
+    
+  <div class="comments" id="comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the comments powered by Disqus.</noscript>
+    </div>
+  </div>
+  
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#负载均衡基本原理"><span class="nav-text"> 负载均衡基本原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一-负载均衡简介"><span class="nav-text"> 一、负载均衡简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二-负载均衡的分类"><span class="nav-text"> 二、负载均衡的分类</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#功能维度分类"><span class="nav-text"> 功能维度分类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#硬件负载均衡"><span class="nav-text"> 硬件负载均衡</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#软件负载均衡"><span class="nav-text"> 软件负载均衡</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#网络通信分类"><span class="nav-text"> 网络通信分类</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#七层负载均衡"><span class="nav-text"> 七层负载均衡</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四层负载均衡"><span class="nav-text"> 四层负载均衡</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三-负载均衡算法"><span class="nav-text"> 三、负载均衡算法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#轮询"><span class="nav-text"> 轮询</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加权轮询"><span class="nav-text"> 加权轮询</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#随机"><span class="nav-text"> 随机</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加权随机"><span class="nav-text"> 加权随机</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#最少连接"><span class="nav-text"> 最少连接</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#加权最少连接"><span class="nav-text"> 加权最少连接</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#源地址哈希"><span class="nav-text"> 源地址哈希</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一致性哈希"><span class="nav-text"> 一致性哈希</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#虚拟哈希槽"><span class="nav-text"> 虚拟哈希槽</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#四-故障处理机制"><span class="nav-text"> 四、故障处理机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#心跳检查"><span class="nav-text"> 心跳检查</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#失败重试机制"><span class="nav-text"> 失败重试机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#五-术语"><span class="nav-text"> 五、术语</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-text"> 参考资料</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <img class="site-author-image" itemprop="image" alt="Zhang Peng"
+    src="/blog/images/avatar.gif">
+  <p class="site-author-name" itemprop="name">Zhang Peng</p>
+  <div class="site-description" itemprop="description">Dunwu's Blog</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/blog/archives/">
+        
+          <span class="site-state-item-count">47</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/blog/categories/">
+          
+        <span class="site-state-item-count">12</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/blog/tags/">
+          
+        <span class="site-state-item-count">43</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/dunwu" title="GitHub &amp;rarr; https:&#x2F;&#x2F;github.com&#x2F;dunwu" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:forbreak@163.com" title="E-Mail &amp;rarr; mailto:forbreak@163.com" rel="noopener" target="_blank"><i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+      </span>
+  </div>
+  <div class="cc-license motion-element" itemprop="license">
+    <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.zh" class="cc-opacity" rel="noopener" target="_blank"><img src="/blog/images/cc-by-nc-sa.svg" alt="Creative Commons"></a>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+<div class="copyright">
+  
+  &copy; 2015 – 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-paper-plane"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Zhang Peng</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-area-chart"></i>
+    </span>
+    <span title="站点总字数">314k</span>
+    <span class="post-meta-divider">|</span>
+    <span class="post-meta-item-icon">
+      <i class="fa fa-coffee"></i>
+    </span>
+    <span title="站点阅读时长">4:45</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+  </div>
+
+  
+  
+  <script color='0,0,255' opacity='0.5' zIndex='-1' count='99' src="//cdn.jsdelivr.net/gh/theme-next/theme-next-canvas-nest@1/canvas-nest.min.js"></script>
+  <script src="/blog/lib/anime.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.min.js"></script>
+  <script src="/blog/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/blog/js/utils.js"></script>
+
+<script src="/blog/js/motion.js"></script>
+
+
+<script src="/blog/js/schemes/pisces.js"></script>
+
+
+<script src="/blog/js/next-boot.js"></script>
+
+<script src="/blog/js/bookmark.js"></script>
+
+
+
+
+  
+
+
+
+
+  
+<script src="/blog/js/local-search.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script>
+  function loadCount() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://blog-ajay4qmfci.disqus.com/count.js';
+    s.id = 'dsq-count-scr';
+    (d.head || d.body).appendChild(s);
+  }
+  // defer loading until the whole page loading is completed
+  window.addEventListener('load', loadCount, false);
+</script>
+<script>
+  function loadComments() {
+    if (window.DISQUS) {
+      DISQUS.reset({
+        reload: true,
+        config: {page: {
+            url: "https://dunwu.github.io/blog/theory/load-balance/",
+            identifier: "theory/load-balance/",
+            title: "负载均衡基本原理"
+          }
+        }
+      });
+    } else {
+      var d = document, s = d.createElement('script');
+      s.src = 'https://blog-ajay4qmfci.disqus.com/embed.js';
+      s.setAttribute('data-timestamp', '' + +new Date());
+      (d.head || d.body).appendChild(s);
+    }
+  }
+    (function() {
+      var offsetTop = document.getElementById('comments').offsetTop - window.innerHeight;
+      if (offsetTop <= 0) {
+        // load directly when there's no a scrollbar
+        window.addEventListener('load', loadComments, false);
+      } else {
+        var disqus_scroll = () => {
+          // offsetTop may changes because of manually resizing browser window or lazy loading images.
+          var offsetTop = document.getElementById('comments').offsetTop - window.innerHeight;
+          var scrollTop = window.scrollY;
+
+          // pre-load comments a bit? (margin or anything else)
+          if (offsetTop - scrollTop < 60) {
+            window.removeEventListener('scroll', disqus_scroll);
+            loadComments();
+          }
+        };
+        window.addEventListener('scroll', disqus_scroll);
+      }
+    })();
+  
+</script>
+
+</body>
+</html>
